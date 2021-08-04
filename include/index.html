@@ -1,0 +1,1003 @@
+﻿/* sekcia pre UPDATE*/
+
+//tu je link na ikony
+//https://www.angularjswiki.com/fontawesome/weather/
+
+/* #include <Arduino.h>*/
+
+  const char zadavaci_html[] = R"rawliteral(
+  <!DOCTYPE HTML>
+  <html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>ESP Input Form</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+
+  <body>
+    <h1>aDum systém IP konfigurácia</h1>
+    <form action="/Nastaveni">
+      IPadresa: <input type="text" value=%s max="16" name="input1"><br><br>
+      Maska: <input type="text" value=%s max="16" name="input2"><br><br>
+      GateWay : <input type="text" value=%s max="16" name="input3"><br><br>
+      Nazev site: <input type="text" value=%s max="16" name="input4"><br><br>
+      Heslo site: <input type="text" value=%s max="16" name="input5"><br><br>
+      <input type="submit" value="Uloz">
+    </form>
+  </body>
+
+  </html>)rawliteral";
+
+  const char LenzobrazIP_html[] = R"rawliteral(
+  <!DOCTYPE HTML>
+  <html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>ESP Input Form</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+
+  <body>
+    <h1>aDum systém IP konfigurácia</h1>
+    <form action="/Nastaveni">
+      IPadresa: <input type="text" value=%s max="30" name="input1"><br><br>
+      Maska: <input type="text" value=%s max="30" name="input2"><br><br>
+      GateWay : <input type="text" value=%s max="30" name="input3"><br><br>
+      Nazev site: <input type="text" value=%s max="30" name="input4"><br>
+    </form>
+  </body>
+
+  </html>
+  )rawliteral";
+
+  const char Main[] = R"rawliteral(
+  <!DOCTYPE HTML>
+  <html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>aDum - hlavná stránka systému</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css">
+    </link>
+  </head>
+  <style>
+    html {
+      font-family: Arial, Helvetica, sans-serif;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: white;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #143642;
+    }
+
+    .topnav {
+      overflow: hidden;
+      background-color: #143642;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .content {
+      padding: 30px;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background-color: #F8F7F9;
+      ;
+      box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5);
+      padding-top: 10px;
+      padding-bottom: 20px;
+    }
+
+    .button {
+      position: relative;
+      font-size: 23px;
+      text-align: center;
+      outline: none;
+      color: #fff;
+      background-color: #0f8b8d;
+      border: none;
+      border-radius: 7px;
+      width: 90%;
+      height: 110px;
+      transition-duration: 0.4s;
+      overflow: hidden;
+      Cursor: pointer;
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    }
+
+    .button:after {
+      content: "";
+      background: #f1f1f1;
+      display: block;
+      position: absolute;
+      padding-top: 300%;
+      padding-left: 350%;
+      margin-left: -20px !important;
+      margin-top: -120%;
+      opacity: 0;
+      transition: all 0.8s
+    }
+
+    .button:active:after {
+      padding: 0;
+      margin: 0;
+      opacity: 1;
+      transition: 0s
+    }
+  </style>
+
+
+
+  <script>
+    var gateway = `ws://${window.location.hostname}/ws`;
+    var websocket;
+    var PocetZon = 7;
+    var x = 2;
+    var a = 4.3;
+    var i, hum = 66;
+    var cnt = 0;
+
+    setInterval(function () {
+      //console.log('Bla timer bude posial Ajax');
+      //getData();
+      //document.getElementById('button0').innerHTML = cnt;
+      cnt++;
+
+      console.log('WebSocket page posila togle po 3 sekundos');
+      websocket.send('VratMiCas');
+      //websocket.send ('wsPoslal');
+    }, 3000);
+
+
+
+    window.addEventListener('load', onLoad);
+    function initWebSocket() {
+      console.log('Trying to open a WebSocket connection...');
+      websocket = new WebSocket(gateway);
+      websocket.onopen = onOpen;
+      websocket.onclose = onClose;
+      websocket.onmessage = onMessage;   // <-- add this line
+    }
+    function onOpen(event) {
+      console.log('Connection opened');
+      websocket.send('VratMiCas');   //vypytam si cas
+    }
+    function onClose(event) {
+      console.log('Connection closed');
+      setTimeout(initWebSocket, 2000);
+    }
+
+
+    //toto sa vykona ked dojde sprava z ESP 
+    function onMessage(event) {
+      var state;
+      var obj = JSON.parse(event.data);
+      console.log("Event data dosli:" + event.data);
+      //if (event.data == "1")
+      //{
+      //	state = "ON";
+      //}
+
+
+      if (obj.Cas) {
+        console.log("Supper mam Cas");
+        document.getElementById("ButtonSett_time").innerHTML = obj.Cas;    //event.data; //obj.hello;
+        console.log("OjbCas vraca:" + obj.Cas);
+      }
+      if (obj.Citac) {
+        console.log("Supper mam Citac");
+        document.getElementById("ButtonSett_time").innerHTML = obj.Citac;
+        console.log("myOjb vraca:" + obj.Citac);
+      }
+      else { console.log("!!! kurba JSON obj nenasel nic v prichod datach"); }
+    }
+    function onLoad(event) {
+      console.log('Main Page - funkcia onLoad a nastavuje ');
+      initWebSocket();
+
+      //initButton ( );
+    }
+
+
+    function getData() {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          var obj = JSON.parse(this.responseText);
+          console.log(this.responseText);
+          document.getElementById("ButtonSett_time").innerHTML = obj.hello;
+          console.log("myOjb vraca:" + obj.hello);
+        }
+      };
+      xhttp.open("GET", "/get?param1=11&param2=22&param3=33&param4=33&param5=55", true);
+      xhttp.send();
+    }
+
+
+
+    function sleep(milliseconds) {
+      const date = Date.now();
+      let currentDate = null;
+      do {
+        currentDate = Date.now();
+      } while (currentDate - date < milliseconds);
+    }
+
+
+    function myFunction(rt) {
+      console.log('Button vola myFuncion a param funkcie je :' + rt);
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          //document.getElementById("state").innerHTML = this.responseText;
+          window.location.assign("/bla1");
+        }
+      };
+
+      if (rt == 1) { window.location.assign("/vytapeni"); }
+      else if (rt == 2) { window.location.assign("/zaluzie_Main"); }
+      else if (rt == 3) { window.location.assign("/update"); }
+      //xhttp.send();
+      //sleep(500);
+      //window.location.assign("/bla1");
+    }
+
+  </script>
+
+  <body>
+    <div class="topnav">
+      <h1>aDum systém</h1>
+      <p><span id="ButtonSett_time" class="fa fa-clock-o" style="color:white;"> --:--</span></p>
+    </div>
+    <div class="content">
+      <div id="myCard" class="card">
+        <!-- <p class="state">state: <span id="state">%STATE%</span></p> -->
+        <!--<p><button onclick="myFunction(100)" class="button"> </p><p><i class="fa fa-clock-o"></i><span id="ButtonSett_time" >--:--</span></button></p>  -->
+        <p><button onclick="myFunction(1)" id="button1" class="button"> </p>
+        <p><i class="fa fa-thermometer-half"></i> Kúrenie</button></p>
+        <p><button onclick="myFunction(2)" id="butto2" class="button"> </p>
+        <p><i class="fa fa-cloud-sun"></i> Žalúzie</button></p>
+        <p><button onclick="myFunction(3)" id="button3" class="button"> </p>
+        <p><i class="fa fa-lightbulb"></i> Svetlá</button></p>
+        <p><button onclick="myFunction(100)" class="button"> </p>
+        <p><i class="fa fa-cogs"></i> Nastavenie</button></p>
+        <!-- <p></><input type="number" id="Hood" name="hodnota" style="font-size:35px; width:85px;" value=23 min="-10" max="30000" step="0.1"></p>  -->
+      </div>
+    </div>
+  </body>
+
+  </html>
+  )rawliteral";
+
+  const char vytapeni[] = R"rawliteral(
+  <!DOCTYPE HTML>
+  <html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>aDum kúrenie - hlavná stránka</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css">
+    </link>
+  </head>
+  <style>
+    html {
+      font-family: Arial, Helvetica, sans-serif;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: white;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #143642;
+    }
+
+    .topnav {
+      overflow: hidden;
+      background-color: #143642;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .content {
+      padding: 30px;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background-color: #F8F7F9;
+      ;
+      box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5);
+      padding-top: 10px;
+      padding-bottom: 20px;
+    }
+
+    .button {
+      position: relative;
+      font-size: 23px;
+      text-align: center;
+      outline: none;
+      color: #fff;
+      background-color: #0f8b8d;
+      border: none;
+      border-radius: 7px;
+      width: 90%;
+      height: 110px;
+      transition-duration: 0.4s;
+      overflow: hidden;
+      Cursor: pointer;
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    }
+
+    .button:after {
+      content: "";
+      background: #f1f1f1;
+      display: block;
+      position: absolute;
+      padding-top: 300%;
+      padding-left: 350%;
+      margin-left: -20px !important;
+      margin-top: -120%;
+      opacity: 0;
+      transition: all 0.8s
+    }
+
+    .button:active:after {
+      padding: 0;
+      margin: 0;
+      opacity: 1;
+      transition: 0s
+    }
+  </style>
+
+  <script>
+    var gateway = `ws://${window.location.hostname}/ws`;
+    var websocket;
+    var PocetZon = 7;
+    var x = 2;
+    var a = 4.3;
+    var i, hum = 66;
+    var cnt = 0;
+
+
+    setInterval(function () {
+      //console.log('Bla timer bude posial Ajax');
+      //getData();
+      //document.getElementById('button0').innerHTML = cnt;
+      cnt++;
+
+      console.log('WebSocket page posila togle po 3 sekundos');
+      websocket.send('VratMiCas');
+      //websocket.send ('VratNamerane_TaH');
+    }, 5000);
+
+
+
+
+    window.addEventListener('load', onLoad);
+    function initWebSocket() {
+      console.log('Trying to open a WebSocket connection...');
+      websocket = new WebSocket(gateway);
+      websocket.onopen = onOpen;
+      websocket.onclose = onClose;
+      websocket.onmessage = onMessage;   // <-- add this line
+    }
+    function onOpen(event) {
+      console.log('Connection opened');
+      websocket.send('VratMiCas');   //vypytam si cas
+      websocket.send('VratNamerane_TaH');
+    }
+    function onClose(event) {
+      console.log('Connection closed');
+      setTimeout(initWebSocket, 2000);
+    }
+
+
+    //toto sa vykona ked dojde sprava z ESP 
+    function onMessage(event) {
+      var state;
+      var obj = JSON.parse(event.data);
+      console.log("Event data dosli:" + event.data);
+      //if (event.data == "1")
+      //{
+      //	state = "ON";
+      //}
+
+
+      if (obj.Cas) {
+        console.log("Supper mam Cas");
+        document.getElementById("ButtonSett_time").innerHTML = obj.Cas;     //event.data; //obj.hello;
+        console.log("OjbCas vraca:" + obj.Cas);
+      }
+      if (obj.Citac) {
+        console.log("Supper mam Citac");
+        document.getElementById("ButtonSett_time").innerHTML = obj.Citac;
+        console.log("myOjb vraca:" + obj.Citac);
+      }
+
+      if (obj.tep1) { document.getElementById("tep1").innerHTML = obj.tep1; }
+      if (obj.hum1) { document.getElementById("hum1").innerHTML = obj.hum1; }
+      if (obj.tep2) { document.getElementById("tep2").innerHTML = obj.tep2; }
+      if (obj.hum2) { document.getElementById("hum2").innerHTML = obj.hum2; }
+      if (obj.tep3) { document.getElementById("tep3").innerHTML = obj.tep3; }
+      if (obj.hum3) { document.getElementById("hum3").innerHTML = obj.hum3; }
+      if (obj.tep4) { document.getElementById("tep4").innerHTML = obj.tep4; }
+      if (obj.hum4) { document.getElementById("hum4").innerHTML = obj.hum4; }
+      if (obj.tep5) { document.getElementById("tep5").innerHTML = obj.tep5; }
+      if (obj.hum5) { document.getElementById("hum5").innerHTML = obj.hum5; }
+      if (obj.tep6) { document.getElementById("tep6").innerHTML = obj.tep6; }
+      if (obj.hum6) { document.getElementById("hum6").innerHTML = obj.hum6; }
+      if (obj.tep7) { document.getElementById("tep7").innerHTML = obj.tep7; }
+      if (obj.hum7) { document.getElementById("hum7").innerHTML = obj.hum7; }
+      if (obj.tep8) { document.getElementById("tep8").innerHTML = obj.tep8; }
+      if (obj.hum8) { document.getElementById("hum8").innerHTML = obj.hum8; }
+      if (obj.tep9) { document.getElementById("tep9").innerHTML = obj.tep9; }
+      if (obj.hum9) { document.getElementById("hum9").innerHTML = obj.hum9; }
+      if (obj.tep10) { document.getElementById("tep10").innerHTML = obj.tep10; }
+      if (obj.hum10) { document.getElementById("hum10").innerHTML = obj.hum10; }
+      //if (obj.tep11) 	 { 	 document.getElementById("tep11").innerHTML = obj.tep11;  }
+      //if (obj.hum11) 	 { 	 document.getElementById("hum11").innerHTML = obj.hum11;  }
+
+
+      else { console.log("!!! kurba JSON obj nenasel nic v prichod datach"); }
+    }
+    function onLoad(event) {
+      console.log('Main Page - funkcia onLoad a nastavuje ');
+      initWebSocket();
+      //initButton ( );
+    }
+
+    function getData() {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          var obj = JSON.parse(this.responseText);
+          console.log(this.responseText);
+          document.getElementById("ButtonSett_time").innerHTML = obj.hello;
+          console.log("myOjb vraca:" + obj.hello);
+        }
+      };
+      xhttp.open("GET", "/get?param1=11&param2=22&param3=33&param4=33&param5=55", true);
+      xhttp.send();
+    }
+
+
+
+    function sleep(milliseconds) {
+      const date = Date.now();
+      let currentDate = null;
+      do {
+        currentDate = Date.now();
+      } while (currentDate - date < milliseconds);
+    }
+
+
+    function myFunction(rt) {
+      console.log('Button vola myFuncion a param funkcie je :' + rt);
+
+      if (rt == 1000) { document.getElementById('Hood').value = cnt; }
+      else if (rt == 272) { document.getElementById('button0').innerHTML = rt; }
+      else if (rt == 1) { xhttp.open("GET", "/setPage?param1=1", true); }
+      else if (rt == 2) { xhttp.open("GET", "/setPage?param1=2", true); }
+      else if (rt == 3) { xhttp.open("GET", "/setPage?param1=3", true); }
+      else if (rt == 4) { xhttp.open("GET", "/setPage?param1=4", true); }
+      else if (rt == 5) { xhttp.open("GET", "/setPage?param1=5", true); }
+      else if (rt == 6) { xhttp.open("GET", "/setPage?param1=6", true); }
+      else if (rt == 7) { xhttp.open("GET", "/setPage?param1=7", true); }
+      else if (rt == 8) { xhttp.open("GET", "/setPage?param1=8", true); }
+      else if (rt == 9) { xhttp.open("GET", "/setPage?param1=9", true); }
+      else if (rt == 10) { xhttp.open("GET", "/setPage?param1=10", true); }
+      else if (rt == 11) { xhttp.open("GET", "/setPage?param1=11", true); }
+      else if (rt == 100) { window.location.assign("/"); }
+    }
+  </script>
+
+  <body>
+    <div class="topnav">
+      <h1>aDum systém - kúrenie</h1>
+      <p><span id="ButtonSett_time" class="fa fa-clock-o" style="color:white;"> --:--</span></p>
+    </div>
+    <div class="content">
+      <div id="myCard" class="card">
+        <!-- <p class="state">state: <span id="state">%STATE%</span></p> -->
+        <p><button onclick="myFunction(1)" id="button0" class="button">Garáž</p>
+        <p><i class="fa fa-thermometer-half"></i> <span id="tep1">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i>
+          <span id="hum1">--.-</span>%</button>
+        </p>
+        <p><button onclick="myFunction(2)" id="button1" class="button">Detská Timea</p>
+        <p><i class="fa fa-thermometer-half"></i> <span id="tep2">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i>
+          <span id="hum2">--.-</span>%</button>
+        </p>
+        <p><button onclick="myFunction(3)" id="button2" class="button">Zádverie</p>
+        <p><i class="fa fa-thermometer-half"></i> <span id="tep3">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i>
+          <span id="hum3">--.-</span>%</button>
+        </p>
+        <p><button onclick="myFunction(4)" id="button3" class="button">Jedáleň</p>
+        <p><i class="fa fa-thermometer-half"></i> <span id="tep4">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i>
+          <span id="hum4">--.-</span>%</button>
+        </p>
+        <p><button onclick="myFunction(5)" id="button4" class="button">Kuchyň</p>
+        <p><i class="fa fa-thermometer-half"></i> <span id="tep5">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i>
+          <span id="hum5">--.-</span>%</button>
+        </p>
+        <p><button onclick="myFunction(6)" id="button5" class="button">Obývacia miestnosť</p>
+        <p><i class="fa fa-thermometer-half"></i> <span id="tep6">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i>
+          <span id="hum6">--.-</span>%</button>
+        </p>
+        <p><button onclick="myFunction(7)" id="button6" class="button">Chodba</p>
+        <p><i class="fa fa-thermometer-half"></i> <span id="tep7">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i>
+          <span id="hum7">--.-</span>%</button>
+        </p>
+        <p><button onclick="myFunction(8)" id="button7" class="button">Detská Filip</p>
+        <p><i class="fa fa-thermometer-half"></i> <span id="tep8">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i>
+          <span id="hum8">--.-</span>%</button>
+        </p>
+        <p><button onclick="myFunction(9)" id="button8" class="button">Spálňa</p>
+        <p><i class="fa fa-thermometer-half"></i> <span id="tep9">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i>
+          <span id="hum9">--.-</span>%</button>
+        </p>
+        <p><button onclick="myFunction(10)" id="button9" class="button">Kúpeľňa</p>
+        <p><i class="fa fa-thermometer-half"></i> <span id="tep10">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i>
+          <span id="hum10">--.-</span>%</button>
+        </p>
+        <!--  <p><button onclick="myFunction(11)" id="button10" class="button button1">Ložnice</p><p><i class="fa fa-thermometer-half"></i> <span id="tep11">--.-</span>&deg;C &nbsp;<i class="fa fa-tint"></i> <span id="hum11">--.-</span>%</button></p>  -->
+
+        <p><button onclick="myFunction(100)" id="param1" class="button">Návrat na hlavní stránku</button></p>
+        
+      </div>
+    </div>
+
+
+  </body>
+
+  </html>
+  )rawliteral";
+
+  //******************************************* zaluzie_Main ******************************************
+  const char zaluzie_Main[] = R"rawliteral(
+  <!DOCTYPE HTML>
+  <html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>aDum žaluzie - hlavná stránka</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css">
+    </link>
+  </head>
+  <style>
+    html {
+      font-family: Arial, Helvetica, sans-serif;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: white;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #143642;
+    }
+
+    .topnav {
+      overflow: hidden;
+      background-color: #143642;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .content {
+      padding: 30px;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background-color: #F8F7F9;
+      ;
+      box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5);
+      padding-top: 10px;
+      padding-bottom: 20px;
+    }
+
+    .button {
+      position: relative;
+      font-size: 23px;
+      text-align: center;
+      outline: none;
+      color: #fff;
+      background-color: #0f8b8d;
+      border: none;
+      border-radius: 7px;
+      width: 90%;
+      height: 110px;
+      transition-duration: 0.4s;
+      overflow: hidden;
+      Cursor: pointer;
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    }
+
+    .button:after {
+      content: "";
+      background: #f1f1f1;
+      display: block;
+      position: absolute;
+      padding-top: 300%;
+      padding-left: 350%;
+      margin-left: -20px !important;
+      margin-top: -120%;
+      opacity: 0;
+      transition: all 0.8s
+    }
+
+    .button:active:after {
+      padding: 0;
+      margin: 0;
+      opacity: 1;
+      transition: 0s
+    }
+  </style>
+
+
+  <script>
+    var gateway = `ws://${window.location.hostname}/ws`;
+    var websocket;
+    var PocetZon = 7;
+    var x = 2;
+    var a = 4.3;
+    var i, hum = 66;
+    var cnt = 0;
+
+
+    setInterval(function () {
+      //console.log('Bla timer bude posial Ajax');
+      //getData();
+      //document.getElementById('button0').innerHTML = cnt;
+      cnt++;
+
+      console.log('WebSocket page posila togle po 3 sekundos');
+      websocket.send('VratMiCas');
+      //websocket.send ('VratNamerane_TaH');
+    }, 5000);
+
+
+
+
+    window.addEventListener('load', onLoad);
+    function initWebSocket() {
+      console.log('Trying to open a WebSocket connection...');
+      websocket = new WebSocket(gateway);
+      websocket.onopen = onOpen;
+      websocket.onclose = onClose;
+      websocket.onmessage = onMessage;   // <-- add this line
+    }
+    function onOpen(event) {
+      console.log('Connection opened');
+      websocket.send('VratMiCas');   //vypytam si cas
+      websocket.send('VratNamerane_TaH');
+    }
+    function onClose(event) {
+      console.log('Connection closed');
+      setTimeout(initWebSocket, 2000);
+    }
+
+
+    //toto sa vykona ked dojde sprava z ESP 
+    function onMessage(event) {
+      var state;
+      var obj = JSON.parse(event.data);
+      console.log("Event data dosli:" + event.data);
+
+      if (obj.Cas) {
+        console.log("Supper mam Cas");
+        document.getElementById("ButtonSett_time").innerHTML = obj.Cas;     //event.data; //obj.hello;
+        console.log("OjbCas vraca:" + obj.Cas);
+      }
+
+
+      else { console.log("!!! kurba JSON obj nenasel nic v prichod datach"); }
+    }
+    function onLoad(event) {
+      console.log('Main Page - funkcia onLoad a nastavuje ');
+      initWebSocket();
+      //initButton ( );
+    }
+
+    function getData() {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          var obj = JSON.parse(this.responseText);
+          console.log(this.responseText);
+          document.getElementById("ButtonSett_time").innerHTML = obj.hello;
+          console.log("myOjb vraca:" + obj.hello);
+        }
+      };
+      xhttp.open("GET", "/get?param1=11&param2=22&param3=33&param4=33&param5=55", true);
+      xhttp.send();
+    }
+
+
+
+    function sleep(milliseconds) {
+      const date = Date.now();
+      let currentDate = null;
+      do {
+        currentDate = Date.now();
+      } while (currentDate - date < milliseconds);
+    }
+
+
+    function myFunction(rt) {
+      console.log('Button vola myFuncion a param funkcie je :' + rt);
+
+      if (rt == 1) { console.log('My func 1'); debugger; websocket.send('ZaluzieAllOpen'); }
+      else if (rt == 2) { console.log('My func 2'); debugger; websocket.send('ZaluzieAllStop'); }
+      else if (rt == 3) { console.log('My func 3'); debugger; websocket.send('ZaluzieAllClose'); }
+      else if (rt == 10) { console.log('My func 4'); debugger; window.location.assign("/zaluzie_room_01"); }
+      else if (rt == 11) { window.location.assign("/zaluzie_room_02"); }
+      else if (rt == 12) { window.location.assign("/zaluzie_room_03"); }
+      else if (rt == 13) { window.location.assign("/zaluzie_room_04"); }
+      else if (rt == 14) { window.location.assign("/zaluzie_room_05"); }
+      else if (rt == 15) { window.location.assign("/zaluzie_room_06"); }
+      else if (rt == 16) { window.location.assign("/zaluzie_room_07"); }
+      else if (rt == 17) { window.location.assign("/zaluzie_room_08"); }
+      else if (rt == 18) { window.location.assign("/zaluzie_room_09"); }
+      else if (rt == 100) { window.location.assign("/"); }
+    }
+  </script>
+
+  <body>
+    <div class="topnav">
+      <h1>aDum systém - žalúzie</h1>
+      <p><span id="ButtonSett_time" class="fa fa-clock-o" style="color:white;"> --:--</span></p>
+    </div>
+    <div class="content">
+      <div id="myCard" class="card">
+        <p><button onclick="myFunction(1)" id="bt_01" class="button  fa fa-arrow-alt-circle-up">
+            Otvor všetky žalúzie</button></p>
+        <p><button onclick="myFunction(2)" id="bt_02" class="button  fas fa-hand-paper">
+            STOP všetky žalúzie</button></p>
+        <p><button onclick="myFunction(3)" id="bt_03" class="button  fa fa-arrow-alt-circle-down">
+            Zatvor všetky žalúzie</button></p>
+        <!-- <p><button onclick="myFunction(10)" id="bt_10" class="button">Obývacia miestnosť</button></p>
+        <p><button onclick="myFunction(11)" id="bt_11" class="button">Kuchyň</button></p>
+        <p><button onclick="myFunction(12)" id="bt_12" class="button">Jedáleň</button></p>
+        <p><button onclick="myFunction(13)" id="bt_13" class="button">Spálňa</button></p>
+        <p><button onclick="myFunction(14)" id="bt_14" class="button">Detská Timea</button></p>
+        <p><button onclick="myFunction(15)" id="bt_15" class="button">Detská Filip</button></p>
+        <p><button onclick="myFunction(16)" id="bt_16" class="button">Kúpeľňa</button></p>
+        <p><button onclick="myFunction(17)" id="bt_17" class="button">Garáž</button></p>-->
+        <p><button onclick="myFunction(100)" id="param1" class="button">Návrat na hlavnú stránku</button>
+        </p>
+      </div>
+    </div>
+  </body>
+
+  </html>
+  )rawliteral";
+
+
+  
+
+
+  const char DebugLog_html[] = R"rawliteral(
+  <!DOCTYPE HTML>
+  <html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>aDum Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css">
+    </link>
+  </head>
+
+  <style>
+    html {
+      font-family: Arial, Helvetica, sans-serif;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: white;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #143642;
+    }
+
+    .topnav {
+      overflow: hidden;
+      background-color: #143642;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .content {
+      padding: 30px;
+      max-width: 950px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background-color: #F8F7F9;
+      ;
+      box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5);
+      padding-top: 10px;
+      padding-bottom: 20px;
+    }
+
+    .button {
+      position: relative;
+      font-size: 23px;
+      text-align: center;
+      outline: none;
+      color: #fff;
+      background-color: #0f8b8d;
+      border: none;
+      border-radius: 7px;
+      width: 90%;
+      height: 110px;
+      transition-duration: 0.4s;
+      overflow: hidden;
+      Cursor: pointer;
+      box-shadow: 0 8px 16px 0 rgba(14, 8, 8, 0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    }
+
+    .button:after {
+      content: "";
+      background: #f1f1f1;
+      display: block;
+      position: absolute;
+      padding-top: 300%;
+      padding-left: 350%;
+      margin-left: -20px !important;
+      margin-top: -120%;
+      opacity: 0;
+      transition: all 0.8s
+    }
+
+    .button:active:after {
+      padding: 0;
+      margin: 0;
+      opacity: 1;
+      transition: 0s
+    }
+  </style>
+
+  <script>
+    var gateway = `ws://${window.location.hostname}/ws`;
+    var websocket;
+    var LogEnable = true;
+
+    setInterval(function () {
+      console.log('Timer loop...');
+    }, 10000);
+
+
+    window.addEventListener('load', onLoad);
+    function initWebSocket() {
+      console.log('Trying to open a WebSocket connection...');
+      websocket = new WebSocket(gateway);
+      websocket.onopen = onOpen;
+      websocket.onclose = onClose;
+      websocket.onmessage = onMessage;   // <-- add this line
+    }
+    function onOpen(event) {
+      console.log('Connection opened');
+      websocket.send('VratMiCas');   //vypytam si cas
+    }
+    function onClose(event) {
+      console.log('Connection closed');
+      setTimeout(initWebSocket, 2000);
+    }
+
+    function onLoad(event) {
+      console.log('PageNastevVentil - funkcia onLoad a nastavuje ');
+      initWebSocket();
+      //document.getElementById("ElemTime").value = VentilJson.CasOn;
+    }
+
+    //toto sa vykona ked dojde sprava z ESP 
+    function onMessage(event) {
+      var state;
+      var obj = JSON.parse(event.data);
+      console.log("Event data dosli:" + event.data);
+
+      //if (event.data == "1") { state = "ON";}
+      if (obj.DebugMsg) {
+        if (LogEnable == true) {
+          document.getElementById("LogWindow").value += obj.DebugMsg;
+          logTa = document.getElementById("LogWindow")
+          logTa.scrollTop = logTa.scrollHeight;
+        }
+      }
+    }
+
+
+    function myFunction(rt) {
+      console.log('Button vola myFuncion a param funkcie je :' + rt);
+
+      if (rt == 1) {
+        document.getElementById("LogWindow").value = "";
+      }
+      else if (rt == 2) {
+        if (LogEnable == false) {
+          console.log('Log enble davam TRUE');
+          LogEnable = true;
+          document.getElementById("LogWindow").value += "[Interna hlaska stranek] Povolujem  vypis logu.....:-)\r\n";
+        }
+        else {
+          console.log('Log enble davam FALSE');
+          LogEnable = false;
+          document.getElementById("LogWindow").value += "[Interna hlaska stranek] Zastavujem vypis logu........!!!!\r\n";
+        }
+      }
+    }
+  </script>
+
+  <body>
+    <div class="topnav">
+      <h1>aDum LOG výpise</h1>
+    </div>
+    <div class="content">
+      <div id="myCard" class="card">
+        <!-- <p class="state">state: <span id="state">%STATE%</span></p> -->
+
+        <textarea id="LogWindow" name="LogWindow" rows="50" cols="80">Tu sa bude vypispvat debug log texty.</textarea>
+
+
+        <p><button onclick="myFunction(1)" id="ClearText" class="button">Vymaž okno</button></p>
+        <p><button onclick="myFunction(2)" id="Stoplog" class="button">Stop/Start log</button></p>
+        <!-- <p><button onclick="myFunction(272)" id="param1" class="button">Pokoj pro hosty</p><p><i class="fa fa-thermometer-half"></i> 23.5&deg;C &nbsp;<i class="fa fa-tint"></i> 58%</button></p>
+           <p></><input type="number" id="Hood" name="hodnota" style="font-size:35px; width:85px;" value=23 min="-10" max="30000" step="0.1"></p> -->
+      </div>
+    </div>
+
+
+  </body>
+
+  </html>
+  )rawliteral";
