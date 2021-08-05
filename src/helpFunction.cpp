@@ -193,12 +193,12 @@ bool Input_digital_filtering(VSTUP_t *input_struct, uint16_t filterCas)
 		}
 		else
 		{
-			input_struct->input = 1;
+			input_struct->input = true;
 		}
 	}
 	else
 	{
-		input_struct->input = 0;
+		input_struct->input = false;
 		input_struct->filter = 0;
 	}
 	if (input_struct->input_prew != input_struct->input)
@@ -219,7 +219,7 @@ void ScanInputs(void)
 	if (DIN[input_SDkarta].zmena == true)
 	{
 		Serial.print("[ScanInputs] SD CD hlasi  zmenu a to karta: ");
-		if (DIN[input_SDkarta].input == 1)
+		if (DIN[input_SDkarta].input == true)
 		{
 			Serial.println("zasunuta");
 		}
@@ -232,7 +232,7 @@ void ScanInputs(void)
 	for (u8 i = 0; i < pocetDIN; i++)
 	{
 		DIN[i].zmena = Input_digital_filtering(&DIN[i], filterTime_DI);
-		if (DIN[i].zmena && DIN[i].input == 1)
+		if (DIN[i].zmena == true && DIN[i].input == true)
 		{
 			DIN[i].counter++;
 		} //tu si incrementuju citac impulzu

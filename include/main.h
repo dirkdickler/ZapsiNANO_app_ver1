@@ -22,16 +22,16 @@ typedef struct
 {
 	u8 Prea;
 	u8 Fram;
-	u16 DSTadress; //cilova adresa
-	u16 SCRadress; //zdrojova adresa
+	u8 DSTadress; //cilova adresa
+	u8 SCRadress; //zdrojova adresa
 	u8 SQCnum;
 	u8 CMD;
-	u16 MsgID;
-	u16 Data_count; //9,10
+	u8 MsgID;
+	u16 Data_count; //7,8
 	u8 sumaHead;
 	u8 sumaData;
 	u8 *data;
-} RS485_PACKET_t;
+} AIR_PACKET_t;
 
 typedef struct
 {

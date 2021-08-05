@@ -60,7 +60,6 @@ Ticker timer_1sek(Loop_1sek, 1000, 0, MILLIS);
 Ticker timer_10sek(Loop_10sek, 10000, 0, MILLIS);
 
 SoftwareSerial swSer(14, 12, false, 256);
-u8 RS485_toRx_timeout;
 char swTxBuffer[16];
 char swRxBuffer[16];
 
@@ -86,12 +85,10 @@ bool RTC_cas_OK = false;		   //ze mam RTC fakt nastaveny bud z interneru, alebo 
 const u8 mojePrmenaae = 25;
 u16_t cnt = 0;
 
-static TERMOSTAT_t room[12];
 char gloBuff[200];
 bool LogEnebleWebPage = false;
 
 VSTUP_t DIN[pocetDIN_celkovo];
-
 
 void notifyClients()
 {
@@ -320,7 +317,7 @@ void setup()
 		aa++;
 	}
 	// Print ESP Local IP Address
-	Serial.println(WiFi.localIP()); //TODO test todo
+	Serial.println(WiFi.localIP());
 
 	initWebSocket();
 
@@ -365,7 +362,6 @@ void Loop_1ms()
 {
 	AN_Pot1_Raw = analogRead(ADC_curren_pin);
 	AN_Pot1_Filtered = readADC_Avg(AN_Pot1_Raw);
-	
 }
 
 void Loop_10ms()
@@ -406,8 +402,8 @@ void Loop_10ms()
 				DebugMsgToWebSocket(temp);
 				//Serial.printf(temp);
 
-				RS485_PACKET_t *loc_paket;
-				loc_paket = (RS485_PACKET_t *)budd;
+				AIR_PACKET_t *loc_paket;
+				loc_paket = (AIR_PACKET_t *)budd;
 
 				sprintf(temp, "[RS485]  DST adresa je:%u\r\n", loc_paket->DSTadress);
 				DebugMsgToWebSocket(temp);
@@ -460,6 +456,18 @@ void Loop_10sek(void)
 	static u8_t loc_cnt = 0;
 	//Serial.println("\r\n[10sek Loop]  Mam Loop 10 sek..........");
 	DebugMsgToWebSocket("[10sek Loop]  mam 1 sek....\r\n");
+
+
+	//TODOtu si teraz spra ukaldanie analogu a digital cnt na do RAM or do SD karty
+	{
+
+		//tu pred touto loop musis mat uz ulozene DIN.counters, lebo si ich tu nulujem!!
+		for (u8 i = 0; i < pocetDIN; i++)
+		{
+			DIN[pocetDIN].counter = 0;
+		}
+	}
+
 	Serial.print("Wifi status:");
 	Serial.println(WiFi.status());
 
@@ -870,28 +878,8 @@ int8_t NacitajEEPROM_setting(void)
 
 void OdosliStrankeVytapeniData(void)
 {
-	ObjTopeni["tep1"] = room[0].T_vzduch;
-	ObjTopeni["hum1"] = room[0].RH_vlhkkost;
-	ObjTopeni["tep2"] = room[1].T_vzduch;
-	ObjTopeni["hum2"] = room[1].RH_vlhkkost;
-	ObjTopeni["tep3"] = room[2].T_vzduch;
-	ObjTopeni["hum3"] = room[2].RH_vlhkkost;
-	ObjTopeni["tep4"] = room[3].T_vzduch;
-	ObjTopeni["hum4"] = room[3].RH_vlhkkost;
-	ObjTopeni["tep5"] = room[4].T_vzduch;
-	ObjTopeni["hum5"] = room[4].RH_vlhkkost;
-	ObjTopeni["tep6"] = room[5].T_vzduch;
-	ObjTopeni["hum6"] = room[5].RH_vlhkkost;
-	ObjTopeni["tep7"] = room[6].T_vzduch;
-	ObjTopeni["hum7"] = room[6].RH_vlhkkost;
-	ObjTopeni["tep8"] = room[7].T_vzduch;
-	ObjTopeni["hum8"] = room[7].RH_vlhkkost;
-	ObjTopeni["tep9"] = room[8].T_vzduch;
-	ObjTopeni["hum9"] = room[8].RH_vlhkkost;
-	ObjTopeni["tep10"] = room[9].T_vzduch;
-	ObjTopeni["hum10"] = room[9].RH_vlhkkost;
-	ObjTopeni["tep11"] = room[10].T_vzduch;
-	ObjTopeni["hum11"] = room[10].RH_vlhkkost;
+	//ObjTopeni["tep1"] = room[0].T_vzduch;
+	//ObjTopeni["hum1"] = room[0].RH_vlhkkost;
 
 	String jsonString = JSON.stringify(ObjTopeni);
 	Serial.print("[ event -VratNamerane_TaH] Odosielam strankam ObjTopeni:");
@@ -915,12 +903,10 @@ void encoder()
 void System_init(void)
 {
 	Serial.print("[Func:System_init]  begin..");
-    DIN[input1].pin = DI1_pin; 
-	DIN[input2].pin = DI2_pin; 
-	DIN[input3].pin = DI3_pin; 
-	DIN[input4].pin = DI4_pin; 
-	
-
+	DIN[input1].pin = DI1_pin;
+	DIN[input2].pin = DI2_pin;
+	DIN[input3].pin = DI3_pin;
+	DIN[input4].pin = DI4_pin;
 
 	pinMode(ADC_gain_pin, OUTPUT_OPEN_DRAIN);
 	pinMode(SD_CS_pin, OUTPUT);
