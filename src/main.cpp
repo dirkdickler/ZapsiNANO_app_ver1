@@ -121,7 +121,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 			//Send:02 43 64 00 02 00 0e 80 0e 00 00 00 b8
 			u8 loc_buf[14] = {0x2, 0x43, 0x64, 0x0, 0x2, 0x0, 0x0e, 0x80, 0x0e, 0x0, 0x0, 0x0, 0xb8};
 			Serial.println("stranky poslali: ZaluzieVsetkyOtvor");
-			RS485_TxModee(&RS485_toRx_timeout);
+
 			//Serial1.print("test RS485..Zaluzie All open.. ");
 			for (u8 i = 0; i < 13; i++)
 			{
@@ -135,7 +135,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 			//Send:02 43 64 00 02 00 0c 80 0c 00 00 00 bc
 			u8 loc_buf[14] = {0x2, 0x43, 0x64, 0x0, 0x2, 0x0, 0x0c, 0x80, 0x0c, 0x0, 0x0, 0x0, 0xbc};
 			Serial.println("stranky poslali: ZaluzieAllStop ");
-			RS485_TxModee(&RS485_toRx_timeout);
+
 			//Serial1.println("test RS485..Zaluzie All Stop.. ");
 			for (u8 i = 0; i < 13; i++)
 			{
@@ -151,7 +151,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 			//Send:02 43 64 00 02 00 0d 80 0d 00 00 00 ba
 			u8 loc_buf[14] = {0x02, 0x43, 0x64, 0x0, 0x2, 0x0, 0x0d, 0x80, 0x0d, 0x0, 0x0, 0x0, 0xba};
 			Serial.println("stranky poslali: ZaluzieVsetky zatvor");
-			RS485_TxModee(&RS485_toRx_timeout);
+
 			//Serial1.println("test RS485..Zaluzie All close.. ");
 			for (u8 i = 0; i < 13; i++)
 			{
@@ -217,33 +217,17 @@ void setup()
 {
 	Serial.begin(115200);
 	Serial.println("Spustam applikaciu.1222");
-
-	pinMode(RS485_DirPin, OUTPUT);
-	pinMode(LedOrange, OUTPUT);
-	RS485_RxMode;
-	//Serial1.println("test RS485.. Begin");
-	digitalWrite(LedOrange, LOW);
-
+	System_init();
 	//attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
 	//pinMode(ENCODER1, INPUT);
 	//pinMode(ENCODER2, INPUT);
 
 	rtc.setTime(30, 24, 15, 17, 1, 2021); // 17th Jan 2021 15:24:30
 
-	// #define SD_ss 10
-	// #define SD_mosi 11
-	// #define SD_sck 12
-	// #define SD_miso 13
-#define SD_miso 4
-#define SD_mosi 2
-#define SD_sck 3
-#define SD_ss 1
-
 	SDSPI.setFrequency(3500000);
 	SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
-	pinMode(SD_ss, OUTPUT); //HSPI SS  set slave select pins as output
 
-	if (!SD.begin(SD_ss, SDSPI))
+	if (!SD.begin(SD_CS_pin, SDSPI))
 	{
 		Serial.println("Card Mount Failed");
 	}
@@ -945,11 +929,26 @@ void encoder()
 	}
 }
 
-void RS485_TxModee(u8 *timeout)
+void System_init(void)
 {
-	*timeout = RS485_TimeOut;
-	RS485_TxMode;
+	Serial.print("[Func:System_init]  begin..");
+	pinMode(ADC_gain_pin, OUTPUT_OPEN_DRAIN);
+	pinMode(SD_CS_pin, OUTPUT);
+	pinMode(WIZ_CS_pin, OUTPUT);
+	pinMode(WIZ_RES_pin, OUTPUT);
 
-	Serial.print("[Func:RS485_TxModee]  timeout davam:");
-	Serial.println(*timeout);
+	pinMode(DI1_pin, INPUT_PULLUP);
+	pinMode(DI2_pin, INPUT_PULLUP);
+	pinMode(DI3_pin, INPUT_PULLUP);
+	pinMode(DI4_pin, INPUT_PULLUP);
+	pinMode(SD_CD_pin, INPUT_PULLUP);
+	pinMode(WIZ_INT_pin, INPUT_PULLUP);
+	pinMode(Joy_up_pin, INPUT_PULLUP);
+	pinMode(Joy_dn_pin, INPUT_PULLUP);
+	pinMode(Joy_Butt_pin, INPUT_PULLUP);
+	pinMode(Joy_left_pin, INPUT_PULLUP);
+	pinMode(Joy_right_pin, INPUT_PULLUP);
+	//digitalWrite(LedOrange, LOW);
+
+	Serial.print("[Func:System_init]  end..");
 }
