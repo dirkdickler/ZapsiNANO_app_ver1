@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "define.h"
 #include <ESPAsyncWebServer.h>
-
+#include "constants.h"
 
 typedef int32_t i32;
 typedef int16_t i16;
@@ -87,6 +87,8 @@ typedef struct
 #define NOKcode_missingData 3	//chynaju data v pakete
 #define NOKcode_naznamyMSGID 4	//
 
+extern VSTUP_t DIN[pocetDIN];
+
 void Loop_1ms(void);
 void Loop_10ms(void);
 void Loop_100ms(void);
@@ -95,7 +97,6 @@ void Loop_10sek(void);
 void OdosliCasDoWS(void);
 void DebugMsgToWebSocket(String textik);
 void FuncServer_On(void);
-
 
 void testik(void);
 int8_t NacitajEEPROM_setting(void);

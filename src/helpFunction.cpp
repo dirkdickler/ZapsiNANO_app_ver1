@@ -159,27 +159,74 @@ bool SkontrolujCiJePovolenyDenvTyzdni(u8 Obraz, tm *timeInfoPRT)
 	return false;
 }
 
-
 #include "esp_adc_cal.h"
- 
-#define AN_Pot1     35
-#define FILTER_LEN  15
+
+#define AN_Pot1 35
+#define FILTER_LEN 15
 uint32_t AN_Pot1_Buffer[FILTER_LEN] = {0};
 int AN_Pot1_i = 0;
 
 uint32_t readADC_Avg(int ADC_Raw)
 {
-  int i = 0;
-  uint32_t Sum = 0;
-  
-  AN_Pot1_Buffer[AN_Pot1_i++] = ADC_Raw;
-  if(AN_Pot1_i == FILTER_LEN)
-  {
-    AN_Pot1_i = 0;
-  }
-  for(i=0; i<FILTER_LEN; i++)
-  {
-    Sum += AN_Pot1_Buffer[i];
-  }
-  return (Sum/FILTER_LEN);
+	int i = 0;
+	uint32_t Sum = 0;
+
+	AN_Pot1_Buffer[AN_Pot1_i++] = ADC_Raw;
+	if (AN_Pot1_i == FILTER_LEN)
+	{
+		AN_Pot1_i = 0;
+	}
+	for (i = 0; i < FILTER_LEN; i++)
+	{
+		Sum += AN_Pot1_Buffer[i];
+	}
+	return (Sum / FILTER_LEN);
+}
+
+bool Input_digital_filtering(VSTUP_t *input_struct, uint16_t filterCas)
+{
+	if (digitalRead(input_struct->pin) == LOW)
+	{
+		if (input_struct->filter < filterCas)
+		{
+			input_struct->filter++;
+		}
+		else
+		{
+			input_struct->input = 1;
+		}
+	}
+	else
+	{
+		input_struct->input = 0;
+		input_struct->filter = 0;
+	}
+	if (input_struct->input_prew != input_struct->input)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void ScanInputs(void)
+{
+	bool bolaZmenaVstupu = false;
+
+	for (u8 i = 0; i < pocetDIN; i++)
+	{
+		DIN[i].zmena = Input_digital_filtering(&DIN[i], filterTime_DI);
+		if (DIN[i].zmena && DIN[i].input == 1)
+		{
+			DIN[i].counter++;
+		} //tu si incrementuju citac impulzu
+		bolaZmenaVstupu |= DIN[i].zmena;
+	}
+
+	for (u8 u = 0; u < pocetDIN; u++)
+	{
+		DIN[u].input_prew = DIN[u].input;
+	}
 }

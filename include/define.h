@@ -6,7 +6,14 @@ typedef struct
 	String Nazov;
 	float Tset;
 }ROOM_t;
+
+#define input1 0
+#define input2 1
+#define input3 2
+#define input4 3
+
 #define pocetDIN 4
+#define filterTime_DI 3
 
 
 //const int LedGreen = 26;

@@ -35,6 +35,8 @@
 #define ENCODER1 2
 #define ENCODER2 3
 volatile long int encoder_pos = 0;
+int AN_Pot1_Raw = 0;
+int AN_Pot1_Filtered = 0;
 
 // Replace with your network credentials
 //const char* ssid = "Grabcovi";
@@ -358,17 +360,15 @@ void loop()
 	timer_10sek.update();
 }
 
-int AN_Pot1_Raw = 0;
-int AN_Pot1_Filtered = 0;
 void Loop_1ms()
 {
 	AN_Pot1_Raw = analogRead(ADC_curren_pin);
 	AN_Pot1_Filtered = readADC_Avg(AN_Pot1_Raw);
+	
 }
 
 void Loop_10ms()
 {
-#define indexData 14
 	static uint8_t TimeOut_RXdata = 0;	 //musi byt static lebo sem skaces z Loop
 	static uint16_t KolkkoNplnenych = 0; //musi byt static lebo sem skaces z Loop
 	static char budd[250];				 //musi byt static lebo sem skaces z Loop
@@ -417,26 +417,6 @@ void Loop_10ms()
 
 				if (loc_paket->SCRadress == 10)
 				{
-					room[0].T_podlaha = budd[indexData + 4];
-					room[0].T_podlaha <<= 8;
-					room[0].T_podlaha += budd[indexData + 3];
-					room[0].T_vzduch = budd[indexData + 6];
-					room[0].T_vzduch <<= 8;
-					room[0].T_vzduch += budd[indexData + 5];
-					room[0].RH_vlhkkost = budd[indexData + 8];
-					room[0].RH_vlhkkost <<= 8;
-					room[0].RH_vlhkkost += budd[indexData + 7];
-					room[0].T_podlaha_SET = budd[indexData + 10];
-					room[0].T_podlaha_SET <<= 8;
-					room[0].T_podlaha_SET += budd[indexData + 9];
-					room[0].T_vzduch_SET = budd[indexData + 12];
-					room[0].T_vzduch_SET <<= 8;
-					room[0].T_vzduch_SET += budd[indexData + 11];
-					room[0].RH_vlhkkost_SET = budd[indexData + 14];
-					room[0].RH_vlhkkost_SET <<= 8;
-					room[0].RH_vlhkkost_SET += budd[indexData + 13];
-					room[0].teleso = budd[indexData + 15];
-
 					OdosliStrankeVytapeniData();
 				}
 
@@ -445,6 +425,8 @@ void Loop_10ms()
 			}
 		}
 	}
+
+	ScanInputs();
 }
 
 void Loop_100ms(void)
@@ -932,6 +914,13 @@ void encoder()
 void System_init(void)
 {
 	Serial.print("[Func:System_init]  begin..");
+    DIN[input1].pin = DI1_pin; 
+	DIN[input2].pin = DI2_pin; 
+	DIN[input3].pin = DI3_pin; 
+	DIN[input4].pin = DI4_pin; 
+	
+
+
 	pinMode(ADC_gain_pin, OUTPUT_OPEN_DRAIN);
 	pinMode(SD_CS_pin, OUTPUT);
 	pinMode(WIZ_CS_pin, OUTPUT);
