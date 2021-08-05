@@ -95,20 +95,11 @@ typedef struct
 {  
 	u8 typVstupu;     //klasika,citac,ci ma automaticky padat fo nule
 	uint16_t pin;
-	//GPIO_TypeDef *port; //tento PTR musi mat #include "stm32f407xx.h"
-	uint16_t pinLEDindicator;
-	//GPIO_TypeDef* portLEDindicator; //tento PTR musi mat #include "stm32f407xx.h"
-	uint32_t surovyObraz;
 	uint8_t input;
 	uint8_t input_prew;
 	uint16_t filter;
 	uint32_t counter;
 	uint16_t conter_filter;
-	uint16_t pressTime;
-	uint16_t pressTimePrew;
-	uint16_t releaseTime;
-	uint16_t releaseTimePrew;
-	uint8_t pressCnt;
 	bool zmena;
 }VSTUP_t;
 

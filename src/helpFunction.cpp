@@ -215,6 +215,20 @@ void ScanInputs(void)
 {
 	bool bolaZmenaVstupu = false;
 
+	DIN[input_SDkarta].zmena = Input_digital_filtering(&DIN[input_SDkarta], filterTime_SD_CD);
+	if (DIN[input_SDkarta].zmena == true)
+	{
+		Serial.print("[ScanInputs] SD CD hlasi  zmenu a to karta: ");
+		if (DIN[input_SDkarta].input == 1)
+		{
+			Serial.println("zasunuta");
+		}
+		else
+		{
+			Serial.println("vysunuta");
+		}
+	}
+
 	for (u8 i = 0; i < pocetDIN; i++)
 	{
 		DIN[i].zmena = Input_digital_filtering(&DIN[i], filterTime_DI);
@@ -225,7 +239,12 @@ void ScanInputs(void)
 		bolaZmenaVstupu |= DIN[i].zmena;
 	}
 
-	for (u8 u = 0; u < pocetDIN; u++)
+	if (bolaZmenaVstupu == true)
+	{
+		Serial.print("[ScanInputs] hlasi ze mam zmenu na vstupoch....");
+	}
+
+	for (u8 u = 0; u < pocetDIN; u++) //toto musi by tu na konci funkcie lebo to nastavi ze aktualny do predchoziho stavu
 	{
 		DIN[u].input_prew = DIN[u].input;
 	}

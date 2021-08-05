@@ -87,7 +87,7 @@ typedef struct
 #define NOKcode_missingData 3	//chynaju data v pakete
 #define NOKcode_naznamyMSGID 4	//
 
-extern VSTUP_t DIN[pocetDIN];
+extern VSTUP_t DIN[pocetDIN_celkovo];
 
 void Loop_1ms(void);
 void Loop_10ms(void);

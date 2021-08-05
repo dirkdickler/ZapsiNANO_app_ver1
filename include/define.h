@@ -11,9 +11,12 @@ typedef struct
 #define input2 1
 #define input3 2
 #define input4 3
+#define input_SDkarta 5 
 
 #define pocetDIN 4
-#define filterTime_DI 3
+#define pocetDIN_celkovo 5
+#define filterTime_DI 3  //10ms loop
+#define filterTime_SD_CD 10 //10ms loop
 
 
 //const int LedGreen = 26;

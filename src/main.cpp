@@ -90,7 +90,8 @@ static TERMOSTAT_t room[12];
 char gloBuff[200];
 bool LogEnebleWebPage = false;
 
-VSTUP_t DIN[pocetDIN];
+VSTUP_t DIN[pocetDIN_celkovo];
+
 
 void notifyClients()
 {
