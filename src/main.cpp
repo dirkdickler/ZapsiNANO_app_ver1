@@ -31,6 +31,8 @@
 #include <SoftwareSerial.h>
 #include <ESP32Time.h>
 #include "HelpFunction.h"
+#include "Pin_assigment.h"
+#include "MiddleWare\Ethernet/WizChip_my_API.h"
 
 #define ENCODER1 2
 #define ENCODER2 3
@@ -89,6 +91,7 @@ char gloBuff[200];
 bool LogEnebleWebPage = false;
 
 VSTUP_t DIN[pocetDIN_celkovo];
+char TX_BUF[TX_RX_MAX_BUF_SIZE];
 
 void notifyClients()
 {
@@ -337,7 +340,6 @@ void setup()
 	esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
 	esp_task_wdt_add(NULL);				  //add current thread to WDT watch
 
-
 	//RS485 musis spustit az tu, lebo ak ju das hore a ESP ceka na konnect wifi, a pridu nejake data na RS485, tak FreeRTOS =RESET  asi overflow;
 	Serial1.begin(9600);
 
@@ -361,6 +363,8 @@ void Loop_1ms()
 {
 	AN_Pot1_Raw = analogRead(ADC_curren_pin);
 	AN_Pot1_Filtered = readADC_Avg(AN_Pot1_Raw);
+
+	TCP_handler(TCP_10001_socket, 10001);
 }
 
 void Loop_10ms()
@@ -455,7 +459,6 @@ void Loop_10sek(void)
 	static u8_t loc_cnt = 0;
 	//Serial.println("\r\n[10sek Loop]  Mam Loop 10 sek..........");
 	DebugMsgToWebSocket("[10sek Loop]  mam 1 sek....\r\n");
-
 
 	//TODOtu si teraz spra ukaldanie analogu a digital cnt na do RAM or do SD karty
 	{
@@ -646,7 +649,6 @@ void FuncServer_On(void)
 
 //***********************************************  Hepl function ********************************************/
 
-
 void ESPinfo(void)
 {
 	esp_chip_info_t chip_info;
@@ -669,9 +671,9 @@ void ESPinfo(void)
 	Serial.printf("Total PSRAM: %d\r\n", ESP.getPsramSize());
 	Serial.printf("Free PSRAM: %d\r\n", ESP.getFreePsram()); // log_d("Free PSRAM: %d", ESP.getFreePsram());
 	Serial.print("Alokujem buffer psdRamBuffer  500kB PSRAM");
-	byte* psdRamBuffer = (byte*)ps_malloc(500000);
-	Serial.printf(" -Free PSRAM: %d\r\n", ESP.getFreePsram()); 
-	Serial.print("Uvolnujem buffer psdRamBuffer 500kz PSRAM "); 
+	byte *psdRamBuffer = (byte *)ps_malloc(500000);
+	Serial.printf(" -Free PSRAM: %d\r\n", ESP.getFreePsram());
+	Serial.print("Uvolnujem buffer psdRamBuffer 500kz PSRAM ");
 	free(psdRamBuffer);
 	Serial.printf(" Free PSRAM po uvolneni : %d\r\n", ESP.getFreePsram()); // log_d("Free PSRAM: %d", ESP.getFreePsram());
 	Serial.println("\r\n*******************************************************************");
@@ -834,7 +836,6 @@ void handle_Nastaveni(AsyncWebServerRequest *request)
 	EEPROM.commit();
 }
 
-
 void OdosliStrankeVytapeniData(void)
 {
 	//ObjTopeni["tep1"] = room[0].T_vzduch;
@@ -859,3 +860,59 @@ void encoder()
 	}
 }
 
+//******************************************************************************************************************************
+void TCP_handler(uint8_t s, uint16_t port)
+{
+
+	uint16_t RSR_len;
+	char *ethBuff = TX_BUF;
+	uint8_t ret; /* if a socket is closed */
+	int32_t kolko;
+	uint16_t freesize;
+	uint16_t size = 0, sentsize = 0;
+	switch (getSn_SR(s))
+	{
+	// case SOCK_ESTABLISHED: /* if connection is established */
+	// 	if (getSn_IR(s) & Sn_IR_CON)
+	// 	{
+	// 		setSn_IR(s, Sn_IR_CON);
+	// 	}
+	// 	if ((size = getSn_RX_RSR(s)) > 0) // Don't need to check SOCKERR_BUSY because it doesn't not occur.
+	// 	{
+	// 		// if (size > TX_RX_MAX_BUF_SIZE) size = TX_RX_MAX_BUF_SIZE;
+	// 		// ret = recv(s, (u8*)ethBuff, size);
+
+	// 		// if (ret <= 0) return;      // check SOCKERR_BUSY & SOCKERR_XXX. For showing the occurrence of SOCKERR_BUSY.
+	// 		// size = (uint16_t)ret;
+	// 		// sentsize = 0;
+
+	// 		// if (strncmp((const char*)ethBuff, "GET", 3) == 0)// && timers.GET_request_timeout == 0 )
+	// 		// {
+	// 		// 	sprintf(TX_BUF, "\r\n*****DOSLO GET!!!!");
+	// 		// 	send(s, (u8*)ethBuff, strlen((const char*)ethBuff));
+	// 		// }
+	// 		// sprintf(TX_BUF, "\r\n*****Test ci ospovida Wiz5100s!");
+	// 		// send(s, (u8*)ethBuff, strlen(ethBuff));
+	// 	}
+	// 	break;
+
+	// case SOCK_CLOSE_WAIT: /* If the client request to close */
+
+	// 	disconnect(s);
+	// 	break;
+
+	// case SOCK_CLOSED:
+	// 	if ((ret = socket(s, Sn_MR_TCP, port, 0x00)) != s) //if(socket(s,Sn_MR_TCP,port,0x00) == 0)    /* reinitialize the socket */
+	// 	{
+	// 	}
+	// 	break;
+
+	// case SOCK_INIT: /* if a socket is initiated */
+	// 	listen(s);
+	// 	break;
+
+	// default:
+	// 	break;
+	}
+}
+//******************************************************************************************************************************

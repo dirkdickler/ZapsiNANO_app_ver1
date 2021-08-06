@@ -2,6 +2,7 @@
 #include "define.h"
 #include "main.h" //kvolu u8,u16..
 #include <EEPROM.h>
+#include "Pin_assigment.h"
 
 //toto spituje retezec napr cas  21:56, ti rozdeli podla delimetru ":"
 char **split(char **argv, int *argc, char *string, const char delimiter, int allowempty)

@@ -4,5 +4,10 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"wizchip_my_api.h": "c",
+			"wizchip_conf.h": "c"
+		}
+	}
 }

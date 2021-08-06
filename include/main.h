@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include "define.h"
-#include <ESPAsyncWebServer.h>
+//#include <ESPAsyncWebServer.h>
 #include "constants.h"
 
 typedef int32_t i32;
@@ -113,5 +113,6 @@ void OdosliStrankeVytapeniData(void);
 String handle_Zadavanie_IP_setting(void);
 void handle_Nastaveni(AsyncWebServerRequest *request);
 void encoder();
+void TCP_handler(uint8_t s, uint16_t port);
 
 #endif
