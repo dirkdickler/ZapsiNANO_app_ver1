@@ -48,7 +48,7 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "MiddleWare\Ethernet\wizchip_conf.h"
+#include "wizchip_conf.h"
 
 	/// \cond DOXY_APPLY_CODE
 #if   (_WIZCHIP_ == W5100S)

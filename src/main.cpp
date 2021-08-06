@@ -32,7 +32,7 @@
 #include <ESP32Time.h>
 #include "HelpFunction.h"
 #include "Pin_assigment.h"
-#include "MiddleWare\Ethernet/WizChip_my_API.h"
+#include "WizChip_my_API.h"
 
 #define ENCODER1 2
 #define ENCODER2 3
@@ -872,47 +872,47 @@ void TCP_handler(uint8_t s, uint16_t port)
 	uint16_t size = 0, sentsize = 0;
 	switch (getSn_SR(s))
 	{
-	// case SOCK_ESTABLISHED: /* if connection is established */
-	// 	if (getSn_IR(s) & Sn_IR_CON)
-	// 	{
-	// 		setSn_IR(s, Sn_IR_CON);
-	// 	}
-	// 	if ((size = getSn_RX_RSR(s)) > 0) // Don't need to check SOCKERR_BUSY because it doesn't not occur.
-	// 	{
-	// 		// if (size > TX_RX_MAX_BUF_SIZE) size = TX_RX_MAX_BUF_SIZE;
-	// 		// ret = recv(s, (u8*)ethBuff, size);
+	case SOCK_ESTABLISHED: /* if connection is established */
+		if (getSn_IR(s) & Sn_IR_CON)
+		{
+			setSn_IR(s, Sn_IR_CON);
+		}
+		if ((size = getSn_RX_RSR(s)) > 0) // Don't need to check SOCKERR_BUSY because it doesn't not occur.
+		{
+			if (size > TX_RX_MAX_BUF_SIZE) size = TX_RX_MAX_BUF_SIZE;
+			ret = recv(s, (u8*)ethBuff, size);
 
-	// 		// if (ret <= 0) return;      // check SOCKERR_BUSY & SOCKERR_XXX. For showing the occurrence of SOCKERR_BUSY.
-	// 		// size = (uint16_t)ret;
-	// 		// sentsize = 0;
+			if (ret <= 0) return;      // check SOCKERR_BUSY & SOCKERR_XXX. For showing the occurrence of SOCKERR_BUSY.
+			size = (uint16_t)ret;
+			sentsize = 0;
 
-	// 		// if (strncmp((const char*)ethBuff, "GET", 3) == 0)// && timers.GET_request_timeout == 0 )
-	// 		// {
-	// 		// 	sprintf(TX_BUF, "\r\n*****DOSLO GET!!!!");
-	// 		// 	send(s, (u8*)ethBuff, strlen((const char*)ethBuff));
-	// 		// }
-	// 		// sprintf(TX_BUF, "\r\n*****Test ci ospovida Wiz5100s!");
-	// 		// send(s, (u8*)ethBuff, strlen(ethBuff));
-	// 	}
-	// 	break;
+			if (strncmp((const char*)ethBuff, "GET", 3) == 0)// && timers.GET_request_timeout == 0 )
+			{
+				sprintf(TX_BUF, "\r\n*****DOSLO GET!!!!");
+				send(s, (u8*)ethBuff, strlen((const char*)ethBuff));
+			}
+			sprintf(TX_BUF, "\r\n*****Test ci ospovida Wiz5100s!");
+			send(s, (u8*)ethBuff, strlen(ethBuff));
+		}
+		break;
 
-	// case SOCK_CLOSE_WAIT: /* If the client request to close */
+	case SOCK_CLOSE_WAIT: /* If the client request to close */
 
-	// 	disconnect(s);
-	// 	break;
+		disconnect(s);
+		break;
 
-	// case SOCK_CLOSED:
-	// 	if ((ret = socket(s, Sn_MR_TCP, port, 0x00)) != s) //if(socket(s,Sn_MR_TCP,port,0x00) == 0)    /* reinitialize the socket */
-	// 	{
-	// 	}
-	// 	break;
+	case SOCK_CLOSED:
+		if ((ret = socket(s, Sn_MR_TCP, port, 0x00)) != s) //if(socket(s,Sn_MR_TCP,port,0x00) == 0)    /* reinitialize the socket */
+		{
+		}
+		break;
 
-	// case SOCK_INIT: /* if a socket is initiated */
-	// 	listen(s);
-	// 	break;
+	case SOCK_INIT: /* if a socket is initiated */
+		listen(s);
+		break;
 
-	// default:
-	// 	break;
+	default:
+		break;
 	}
 }
 //******************************************************************************************************************************

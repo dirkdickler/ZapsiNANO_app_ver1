@@ -42,14 +42,13 @@
 #ifndef _WizChip_my_API_H_
 #define _WizChip_my_API_H_
 
+#include <Arduino.h>
 #include <stdint.h>
 #include "Pin_assigment.h"
 
-//#include "main.h"
-
-#include "MiddleWare/Ethernet/wizchip_conf.h"
-#include "MiddleWare/Ethernet/socket.h"
-#include "MiddleWare/Ethernet/W5100S/w5100s.h"
+#include "wizchip_conf.h"
+#include "socket.h"
+#include "w5100s.h"
 
 #define WizChip_CS_LO() digitalWrite(WIZ_CS_pin, 0);     //CS=low
 #define WizChip_CS_HI() digitalWrite(WIZ_CS_pin, 1);    //CS=high

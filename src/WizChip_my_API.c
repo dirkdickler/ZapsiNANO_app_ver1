@@ -1,6 +1,5 @@
 
-#include "MiddleWare\Ethernet/WizChip_my_API.h"
-
+#include "WizChip_my_API.h"
 
 void WizChip_sendSPI_byte(uint8_t znak)
 {
