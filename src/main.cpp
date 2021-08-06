@@ -337,7 +337,6 @@ void setup()
 	esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
 	esp_task_wdt_add(NULL);				  //add current thread to WDT watch
 
-	testik();
 
 	//RS485 musis spustit az tu, lebo ak ju das hore a ESP ceka na konnect wifi, a pridu nejake data na RS485, tak FreeRTOS =RESET  asi overflow;
 	Serial1.begin(9600);
@@ -646,15 +645,7 @@ void FuncServer_On(void)
 }
 
 //***********************************************  Hepl function ********************************************/
-// #include <Arduino.h>
-// #include "define.h"
 
-void testik(void)
-{
-	Serial.println("Test funkcie testik");
-
-	Serial.println("Konec - Test funkcie testik");
-}
 
 void ESPinfo(void)
 {
@@ -677,6 +668,12 @@ void ESPinfo(void)
 	Serial.printf("Free heap: %d\r\n", ESP.getFreeHeap());
 	Serial.printf("Total PSRAM: %d\r\n", ESP.getPsramSize());
 	Serial.printf("Free PSRAM: %d\r\n", ESP.getFreePsram()); // log_d("Free PSRAM: %d", ESP.getFreePsram());
+	Serial.print("Alokujem buffer psdRamBuffer  500kB PSRAM");
+	byte* psdRamBuffer = (byte*)ps_malloc(500000);
+	Serial.printf(" -Free PSRAM: %d\r\n", ESP.getFreePsram()); 
+	Serial.print("Uvolnujem buffer psdRamBuffer 500kz PSRAM "); 
+	free(psdRamBuffer);
+	Serial.printf(" Free PSRAM po uvolneni : %d\r\n", ESP.getFreePsram()); // log_d("Free PSRAM: %d", ESP.getFreePsram());
 	Serial.println("\r\n*******************************************************************");
 }
 
@@ -837,44 +834,6 @@ void handle_Nastaveni(AsyncWebServerRequest *request)
 	EEPROM.commit();
 }
 
-int8_t NacitajEEPROM_setting(void)
-{
-	if (!EEPROM.begin(500))
-	{
-		Serial.println("Failed to initialise EEPROM");
-		return -1;
-	}
-
-	Serial.println("Succes to initialise EEPROM");
-
-	EEPROM.readBytes(EE_NazovSiete, NazovSiete, 16);
-
-	if (NazovSiete[0] != 0xff) //ak mas novy modul tak EEPROM vrati prazdne hodnoty, preto ich neprepisem z EEPROM, ale necham default
-	{
-		String apipch = EEPROM.readString(EE_IPadresa); // "192.168.1.11";
-		local_IP = str2IP(apipch);
-
-		apipch = EEPROM.readString(EE_SUBNET);
-		subnet = str2IP(apipch);
-
-		apipch = EEPROM.readString(EE_Brana);
-		gateway = str2IP(apipch);
-
-		memset(NazovSiete, 0, sizeof(NazovSiete));
-		memset(Heslo, 0, sizeof(Heslo));
-		u8_t dd = EEPROM.readBytes(EE_NazovSiete, NazovSiete, 16);
-		u8_t ww = EEPROM.readBytes(EE_Heslosiete, Heslo, 20);
-		Serial.printf("Nacitany nazov siete a heslo z EEPROM: %s  a %s\r\n", NazovSiete, Heslo);
-		return 0;
-	}
-	else
-	{
-		Serial.println("EEPROM je este prazna, nachavma default hodnoty");
-		sprintf(NazovSiete, "semiart");
-		sprintf(Heslo, "aabbccddff");
-		return 1;
-	}
-}
 
 void OdosliStrankeVytapeniData(void)
 {
@@ -900,31 +859,3 @@ void encoder()
 	}
 }
 
-void System_init(void)
-{
-	Serial.print("[Func:System_init]  begin..");
-	DIN[input1].pin = DI1_pin;
-	DIN[input2].pin = DI2_pin;
-	DIN[input3].pin = DI3_pin;
-	DIN[input4].pin = DI4_pin;
-
-	pinMode(ADC_gain_pin, OUTPUT_OPEN_DRAIN);
-	pinMode(SD_CS_pin, OUTPUT);
-	pinMode(WIZ_CS_pin, OUTPUT);
-	pinMode(WIZ_RES_pin, OUTPUT);
-
-	pinMode(DI1_pin, INPUT_PULLUP);
-	pinMode(DI2_pin, INPUT_PULLUP);
-	pinMode(DI3_pin, INPUT_PULLUP);
-	pinMode(DI4_pin, INPUT_PULLUP);
-	pinMode(SD_CD_pin, INPUT_PULLUP);
-	pinMode(WIZ_INT_pin, INPUT_PULLUP);
-	pinMode(Joy_up_pin, INPUT_PULLUP);
-	pinMode(Joy_dn_pin, INPUT_PULLUP);
-	pinMode(Joy_Butt_pin, INPUT_PULLUP);
-	pinMode(Joy_left_pin, INPUT_PULLUP);
-	pinMode(Joy_right_pin, INPUT_PULLUP);
-	//digitalWrite(LedOrange, LOW);
-
-	Serial.print("[Func:System_init]  end..");
-}

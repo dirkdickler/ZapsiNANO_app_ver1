@@ -88,6 +88,13 @@ typedef struct
 #define NOKcode_naznamyMSGID 4	//
 
 extern VSTUP_t DIN[pocetDIN_celkovo];
+extern char NazovSiete[30];
+extern char Heslo[30];
+extern IPAddress local_IP;
+extern IPAddress gateway;
+extern IPAddress subnet;
+extern IPAddress primaryDNS;
+extern IPAddress secondaryDNS;
 
 void Loop_1ms(void);
 void Loop_10ms(void);
@@ -98,8 +105,6 @@ void OdosliCasDoWS(void);
 void DebugMsgToWebSocket(String textik);
 void FuncServer_On(void);
 
-void testik(void);
-int8_t NacitajEEPROM_setting(void);
 void ESPinfo(void);
 int getIpBlock(int index, String str);
 String ipToString(IPAddress ip);
@@ -108,5 +113,5 @@ void OdosliStrankeVytapeniData(void);
 String handle_Zadavanie_IP_setting(void);
 void handle_Nastaveni(AsyncWebServerRequest *request);
 void encoder();
-void System_init(void);
+
 #endif

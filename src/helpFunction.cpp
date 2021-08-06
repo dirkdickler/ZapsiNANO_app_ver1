@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "define.h"
 #include "main.h" //kvolu u8,u16..
+#include <EEPROM.h>
 
 //toto spituje retezec napr cas  21:56, ti rozdeli podla delimetru ":"
 char **split(char **argv, int *argc, char *string, const char delimiter, int allowempty)
@@ -247,5 +248,73 @@ void ScanInputs(void)
 	for (u8 u = 0; u < pocetDIN; u++) //toto musi by tu na konci funkcie lebo to nastavi ze aktualny do predchoziho stavu
 	{
 		DIN[u].input_prew = DIN[u].input;
+	}
+}
+
+void System_init(void)
+{
+	Serial.print("[Func:System_init]  begin..");
+	DIN[input1].pin = DI1_pin;
+	DIN[input2].pin = DI2_pin;
+	DIN[input3].pin = DI3_pin;
+	DIN[input4].pin = DI4_pin;
+
+	pinMode(ADC_gain_pin, OUTPUT_OPEN_DRAIN);
+	pinMode(SD_CS_pin, OUTPUT);
+	pinMode(WIZ_CS_pin, OUTPUT);
+	pinMode(WIZ_RES_pin, OUTPUT);
+
+	pinMode(DI1_pin, INPUT_PULLUP);
+	pinMode(DI2_pin, INPUT_PULLUP);
+	pinMode(DI3_pin, INPUT_PULLUP);
+	pinMode(DI4_pin, INPUT_PULLUP);
+	pinMode(SD_CD_pin, INPUT_PULLUP);
+	pinMode(WIZ_INT_pin, INPUT_PULLUP);
+	pinMode(Joy_up_pin, INPUT_PULLUP);
+	pinMode(Joy_dn_pin, INPUT_PULLUP);
+	pinMode(Joy_Butt_pin, INPUT_PULLUP);
+	pinMode(Joy_left_pin, INPUT_PULLUP);
+	pinMode(Joy_right_pin, INPUT_PULLUP);
+	//digitalWrite(LedOrange, LOW);
+
+	Serial.print("[Func:System_init]  end..");
+}
+
+int8_t NacitajEEPROM_setting(void)
+{
+	if (!EEPROM.begin(500))
+	{
+		Serial.println("Failed to initialise EEPROM");
+		return -1;
+	}
+
+	Serial.println("Succes to initialise EEPROM");
+
+	EEPROM.readBytes(EE_NazovSiete, NazovSiete, 16);
+
+	if (NazovSiete[0] != 0xff) //ak mas novy modul tak EEPROM vrati prazdne hodnoty, preto ich neprepisem z EEPROM, ale necham default
+	{
+		String apipch = EEPROM.readString(EE_IPadresa); // "192.168.1.11";
+		local_IP = str2IP(apipch);
+
+		apipch = EEPROM.readString(EE_SUBNET);
+		subnet = str2IP(apipch);
+
+		apipch = EEPROM.readString(EE_Brana);
+		gateway = str2IP(apipch);
+
+		memset(NazovSiete, 0, sizeof(NazovSiete));
+		memset(Heslo, 0, sizeof(Heslo));
+		u8_t dd = EEPROM.readBytes(EE_NazovSiete, NazovSiete, 16);
+		u8_t ww = EEPROM.readBytes(EE_Heslosiete, Heslo, 20);
+		Serial.printf("Nacitany nazov siete a heslo z EEPROM: %s  a %s\r\n", NazovSiete, Heslo);
+		return 0;
+	}
+	else
+	{
+		Serial.println("EEPROM je este prazna, nachavma default hodnoty");
+		sprintf(NazovSiete, "semiart");
+		sprintf(Heslo, "aabbccddff");
+		return 1;
 	}
 }

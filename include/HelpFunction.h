@@ -11,4 +11,7 @@ bool SkontrolujCiJePovolenyDenvTyzdni(u8 Obraz, tm *timeInfoPRT);
 uint32_t readADC_Avg(int ADC_Raw);
 bool Input_digital_filtering(VSTUP_t *input_struct, uint16_t filterCas);
 void ScanInputs(void);
+void System_init(void);
+int8_t NacitajEEPROM_setting(void);
+
 #endif
