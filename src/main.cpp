@@ -228,7 +228,7 @@ String processor(const String &var)
 void setup()
 {
 	Serial.begin(115200);
-	Serial.println("Spustam applikaciu.1222");
+	Serial.println("Spustam applikaciu.6...");
 	System_init();
 
 	//attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
@@ -617,7 +617,7 @@ void ESPinfo(void)
 	Serial.printf("%dMB %s flash\r\n",
 				  spi_flash_get_chip_size() / (1024 * 1024),
 				  (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embeded" : "external");
-
+   
 	Serial.printf("\r\nTotal heap: %d\r\n", ESP.getHeapSize());
 	Serial.printf("Free heap: %d\r\n", ESP.getFreeHeap());
 	Serial.printf("Total PSRAM: %d\r\n", ESP.getPsramSize());
@@ -843,8 +843,15 @@ void TCP_handler(uint8_t s, uint16_t port)
 
 			if (strncmp((const char *)ethBuff, "GET", 3) == 0) // && timers.GET_request_timeout == 0 )
 			{
+				//SDSPI.setFrequency(35000000);
+				
 				sprintf(TX_BUF, "\r\n*****DOSLO GET!!!!");
+				unsigned long start = micros();
 				send(s, (u8 *)ethBuff, strlen((const char *)ethBuff));
+				unsigned long end = micros();
+					unsigned long delta = end - start;
+					Serial.print("DELTA: ");
+					Serial.println(delta); 
 			}
 			sprintf(TX_BUF, "\r\n*****Test ci ospovida Wiz5100s!");
 			send(s, (u8 *)ethBuff, strlen(ethBuff));

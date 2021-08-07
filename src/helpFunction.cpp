@@ -231,6 +231,7 @@ void ScanInputs(void)
 		if (DIN[input_SDkarta].input == 1)
 		{
 			Serial.println("zasunuta");
+			unsigned long start = micros();
 			if (!SD.begin(SD_CS_pin, SDSPI))
 			{
 				Serial.println("Card Mount Failed");
@@ -240,7 +241,6 @@ void ScanInputs(void)
 				Serial.println("Card Mount OK!!...");
 
 				uint8_t cardType = SD.cardType();
-
 				if (cardType == CARD_NONE)
 				{
 					Serial.println("No SD card attached");
@@ -288,8 +288,12 @@ void ScanInputs(void)
 						}
 						Serial.println("");
 						Serial.println("File read done");
-						Serial.println("=================");
+						Serial.println("================");
 					}
+					unsigned long end = micros();
+					unsigned long delta = end - start;
+					Serial.print("DELTA: ");
+					Serial.println(delta); 
 				}
 			}
 		}
@@ -361,7 +365,7 @@ void System_init(void)
 
 	NaplnWizChipStrukturu();
 
-	SDSPI.setFrequency(35000000);
+	
 	SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
 
 	// if (!SD.begin(SD_CS_pin, SDSPI))
