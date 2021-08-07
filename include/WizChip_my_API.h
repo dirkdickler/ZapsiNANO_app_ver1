@@ -57,6 +57,8 @@
 
 void WizChip_sendSPI_byte(uint8_t znak);
 uint8_t WizChip_SPI_read_byte(void);
+void WizChip_WriteSPI_burst (uint8_t *buff, uint16_t len);
+void  WizChip_ReakSPI_bust (uint8_t *buff, uint16_t len);
 void WizChip_Reset(void);
 void wizchip_select(void);
 void wizchip_deselect(void);

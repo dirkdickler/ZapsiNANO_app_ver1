@@ -133,11 +133,13 @@ void   WIZCHIP_WRITE_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len)
     WIZCHIP.IF.SPI._write_byte(0xF0);
     WIZCHIP.IF.SPI._write_byte((((uint16_t)(AddrSel + i)) & 0xFF00) >> 8);
     WIZCHIP.IF.SPI._write_byte((((uint16_t)(AddrSel + i)) & 0x00FF) >> 0);
+    
+    WIZCHIP.IF.SPI._write_burst(pBuf, len);
+    //for (i = 0; i < len; i++)
+    //{
+     //   WIZCHIP.IF.SPI._write_byte(pBuf[i]);    // Data write (write 1byte data)
+    //}
 
-    for (i = 0; i < len; i++)
-    {
-        WIZCHIP.IF.SPI._write_byte(pBuf[i]);    // Data write (write 1byte data)
-    }
 
 #elif ( (_WIZCHIP_IO_MODE_ == _WIZCHIP_IO_MODE_SPI_5500_) )
 
@@ -189,11 +191,12 @@ void     WIZCHIP_READ_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len)
     WIZCHIP.IF.SPI._write_byte(0x0F);
     WIZCHIP.IF.SPI._write_byte((uint16_t)((AddrSel + i) & 0xFF00) >> 8);
     WIZCHIP.IF.SPI._write_byte((uint16_t)((AddrSel + i) & 0x00FF) >> 0);
-
-    for (i = 0; i < len; i++)
-    {
-        pBuf[i] = WIZCHIP.IF.SPI._read_byte();
-    }
+    
+    WIZCHIP.IF.SPI._read_burst(pBuf, len);
+    //for (i = 0; i < len; i++)
+    //{
+     //   pBuf[i] = WIZCHIP.IF.SPI._read_byte();
+    //}
 #elif ( (_WIZCHIP_IO_MODE_ == _WIZCHIP_IO_MODE_SPI_5500_) )
 
     WIZCHIP.IF.SPI._write_byte((uint16_t)((AddrSel + i) & 0xFF00) >> 8);

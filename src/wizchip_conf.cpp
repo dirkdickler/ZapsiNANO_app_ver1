@@ -131,7 +131,7 @@ void wizchip_spi_writebyte(uint8_t wb) { wizchip_write(wb); }
  * null function is called.
  */
 //void 	wizchip_spi_readburst(uint8_t* pBuf, uint16_t len) 	{};
-void wizchip_spi_readburst(uint8_t *pBuf, uint16_t len) {}
+void wizchip_spi_readburst(uint8_t *pBuf, uint16_t len) { WizChip_ReakSPI_bust(pBuf , len); }
 
 /**
  * @brief Default function to burst write in SPI interface.
@@ -139,7 +139,7 @@ void wizchip_spi_readburst(uint8_t *pBuf, uint16_t len) {}
  * null function is called.
  */
 //void 	wizchip_spi_writeburst(uint8_t* pBuf, uint16_t len) {};
-void wizchip_spi_writeburst(uint8_t *pBuf, uint16_t len) {}
+void wizchip_spi_writeburst(uint8_t *pBuf, uint16_t len) { WizChip_WriteSPI_burst(pBuf , len);}
 
 void wizchip_bus_readburst(uint32_t addr, uint8_t *pBuf, uint32_t len) {}
 void wizchip_bus_writeburst(uint32_t addr, uint8_t *pBuf, uint32_t len){}
@@ -188,6 +188,8 @@ void NaplnWizChipStrukturu(void)
     WIZCHIP.CS._deselect = wizchip_cs_deselect;
     WIZCHIP.IF.SPI._read_byte = wizchip_spi_readbyte;
     WIZCHIP.IF.SPI._write_byte = wizchip_spi_writebyte;
+    WIZCHIP.IF.SPI._write_burst = wizchip_spi_writeburst;
+	WIZCHIP.IF.SPI._read_burst = wizchip_spi_readburst;
 }
 
 static uint8_t _DNS_[4]; // DNS server ip address

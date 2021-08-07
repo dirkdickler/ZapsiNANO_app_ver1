@@ -11,6 +11,15 @@ uint8_t WizChip_SPI_read_byte(void)
 {
 	return SDSPI.transfer(0);
 }
+void WizChip_WriteSPI_burst (uint8_t *buff, uint16_t len)
+{
+	SDSPI.transferBytes(buff,NULL,len);	
+}
+
+void  WizChip_ReakSPI_bust (uint8_t *buff, uint16_t len)
+{
+	SDSPI.transferBytes(NULL,buff ,len);	
+}
 
 void wizchip_select(void)
 {
