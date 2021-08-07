@@ -12,7 +12,7 @@
 #define input_SDkarta 5 
 
 #define pocetDIN 4
-#define pocetDIN_celkovo 5
+#define pocetDIN_celkovo 6   //DIN + SD CD pin , !!! ale daj o +1 lebo nevim preco ho to prepisovalo davalo do neho RTC sek :-) 
 #define filterTime_DI 3  //10ms loop
 #define filterTime_SD_CD 10 //10ms loop
 

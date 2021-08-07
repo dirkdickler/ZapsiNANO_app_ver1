@@ -7,7 +7,7 @@
 #define DI4_pin 3
 #define DI3_pin 4
 #define DI2_pin 5
-#define DI1_pin 7
+#define DI1_pin 6
 #define SD_miso 11
 #define SD_mosi 12
 #define SD_sck 10

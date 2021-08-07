@@ -79,8 +79,8 @@ const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 3600;
 const int daylightOffset_sec = 3600; //letny cas
 struct tm MyRTC_cas;
-bool Internet_CasDostupny = false; //to je ze dostava cas z Inernetu
-bool RTC_cas_OK = false;		   //ze mam RTC fakt nastaveny bud z interneru, alebo nastaveny manualne
+static bool Internet_CasDostupny = false; //to je ze dostava cas z Inernetu
+static bool RTC_cas_OK = false;		   //ze mam RTC fakt nastaveny bud z interneru, alebo nastaveny manualne
 								   //a to teda ze v RTC mam fakr realny cas
 								   //Tento FLAG, nastavi len pri nacitanie casu z internutu, alebo do buducna manualne nastavenie casu cew WEB
 
@@ -230,78 +230,10 @@ void setup()
 	Serial.begin(115200);
 	Serial.println("Spustam applikaciu.1222");
 	System_init();
-    
 
 	//attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
 	//pinMode(ENCODER1, INPUT);
 	//pinMode(ENCODER2, INPUT);
-
-	rtc.setTime(30, 24, 15, 17, 1, 2021); // 17th Jan 2021 15:24:30
-
-	// SDSPI.setFrequency(3500000);
-	// SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
-
-	if (!SD.begin(SD_CS_pin, SDSPI))
-	{
-		Serial.println("Card Mount Failed");
-	}
-	else
-	{
-		Serial.println("Card Mount OK!!...");
-
-		uint8_t cardType = SD.cardType();
-
-		if (cardType == CARD_NONE)
-		{
-			Serial.println("No SD card attached");
-			return;
-		}
-
-		Serial.print("SD Card Type: ");
-		if (cardType == CARD_MMC)
-		{
-			Serial.println("MMC");
-		}
-		else if (cardType == CARD_SD)
-		{
-			Serial.println("SDSC");
-		}
-		else if (cardType == CARD_SDHC)
-		{
-			Serial.println("SDHC");
-		}
-		else
-		{
-			Serial.println("UNKNOWN");
-		}
-
-		uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-		Serial.printf("SD Card Size: %lluMB\n", cardSize);
-		Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
-		Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
-
-		File profile = SD.open("/aaa.txt", FILE_READ);
-		Serial.printf("Velkost subora je :%lu\r\n", profile.size());
-		if (!profile)
-		{
-			Serial.println("Opening file to read failed");
-		}
-		else
-		{
-			Serial.println("File Content:");
-
-			while (profile.available())
-			{
-				while (profile.available())
-				{
-					Serial.write(profile.read());
-				}
-				Serial.println("");
-				Serial.println("File read done");
-				Serial.println("=================");
-			}
-		}
-	}
 
 	ESPinfo();
 
@@ -352,10 +284,10 @@ void setup()
 	esp_task_wdt_add(NULL);				  //add current thread to WDT watch
 
 	//RS485 musis spustit az tu, lebo ak ju das hore a ESP ceka na konnect wifi, a pridu nejake data na RS485, tak FreeRTOS =RESET  asi overflow;
-	Serial1.begin(9600);
+	//Serial1.begin(9600);
 
-	swSer.begin(115200);
-	swSer.println("");
+	//swSer.begin(115200);
+	//swSer.println("");
 }
 
 void loop()
@@ -413,22 +345,22 @@ void Loop_10ms()
 		{
 			{
 				sprintf(temp, "[RS485] doslo:%u a to %s\r\n", KolkkoNplnenych, budd);
-				DebugMsgToWebSocket(temp);
+				//DebugMsgToWebSocket(temp);
 				//Serial.printf(temp);
 
 				AIR_PACKET_t *loc_paket;
 				loc_paket = (AIR_PACKET_t *)budd;
 
 				sprintf(temp, "[RS485]  DST adresa je:%u\r\n", loc_paket->DSTadress);
-				DebugMsgToWebSocket(temp);
+				//DebugMsgToWebSocket(temp);
 				//Serial.printf(temp);
 
 				sprintf(temp, "[RS485] Mam adresu %u a idem ulozit data z RS485\r\n", loc_paket->SCRadress);
-				DebugMsgToWebSocket(temp);
+				//DebugMsgToWebSocket(temp);
 
 				if (loc_paket->SCRadress == 10)
 				{
-					OdosliStrankeVytapeniData();
+					//	OdosliStrankeVytapeniData();
 				}
 
 				memset(budd, 0, sizeof(budd));
@@ -437,16 +369,28 @@ void Loop_10ms()
 		}
 	}
 
-	//ScanInputs();
+	ScanInputs();
 }
 
 void Loop_100ms(void)
 {
+
 }
 
 void Loop_1sek(void)
 {
 	Serial.print("[1sek Loop]  mam 1 sek....  ");
+
+	if (digitalRead(SD_CD_pin) == LOW)
+	{
+		sprintf(TX_BUF, "[1sek Loop]  karta zasunota\r\n");
+	}
+	else
+	{
+		sprintf(TX_BUF, "[1sek Loop]  karta Vysunuta\r\n");
+	}
+	send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
+
 	if (Internet_CasDostupny == false)
 	{
 		Serial.print("Internet cas nedostupny !!,  ");
@@ -460,39 +404,36 @@ void Loop_1sek(void)
 	MyRTC_cas = rtc.getTimeStruct();
 	//Serial.print("[1sek Loop]  free Heap je:");
 	//Serial.println(ESP.getFreeHeap());
-
-	String rr = "[1sek Loop] signalu: " + (String)WiFi.RSSI() + "dBm  a Heap: " + (String)ESP.getFreeHeap() + " kB\r\n";
-	DebugMsgToWebSocket(rr);
 }
 
 void Loop_10sek(void)
 {
-	static u8_t loc_cnt = 0;
-	//Serial.println("\r\n[10sek Loop]  Mam Loop 10 sek..........");
-	DebugMsgToWebSocket("[10sek Loop]  mam 1 sek....\r\n");
+	static u8_t loc_cnt_10sek = 0;
+	Serial.println("\r\n[10sek Loop]  Mam Loop 10 sek..........");
+	//DebugMsgToWebSocket("[10sek Loop]  mam 10 sek....\r\n");
 
 	//TODOtu si teraz spra ukaldanie analogu a digital cnt na do RAM or do SD karty
-	{
+	//{
 
-		//tu pred touto loop musis mat uz ulozene DIN.counters, lebo si ich tu nulujem!!
-		for (u8 i = 0; i < pocetDIN; i++)
-		{
-			DIN[pocetDIN].counter = 0;
-		}
-	}
+	//tu pred touto loop musis mat uz ulozene DIN.counters, lebo si ich tu nulujem!!
+	//for (u8 i = 0; i < pocetDIN; i++)
+	//{
+	//		DIN[pocetDIN].counter = 0;
+	//	}
+	//}
 
 	Serial.print("Wifi status:");
 	Serial.println(WiFi.status());
-
+    
 	//https://randomnerdtutorials.com/esp32-useful-wi-fi-functions-arduino/
 	if (WiFi.status() != WL_CONNECTED)
 	{
-		loc_cnt++;
+		loc_cnt_10sek++;
 		Internet_CasDostupny = false;
 	}
 	else
 	{
-		loc_cnt = 0;
+		loc_cnt_10sek = 0;
 		Serial.println("[10sek] Parada WIFI je Connect davam loc_cnt na Nula");
 
 		//TODO ak je Wifi connect tak pocitam ze RTC cas bude OK este dorob
@@ -500,15 +441,15 @@ void Loop_10sek(void)
 		RTC_cas_OK = true;
 	}
 
-	if (loc_cnt == 2)
+	if (loc_cnt_10sek == 2)
 	{
 		Serial.println("[10sek] Odpajam WIFI, lebo wifi nieje: WL_CONNECTED ");
 		WiFi.disconnect(1, 1);
 	}
 
-	if (loc_cnt == 3)
+	else if (loc_cnt_10sek == 3)
 	{
-		loc_cnt = 255;
+		loc_cnt_10sek = 255;
 		WiFi.mode(WIFI_MODE_APSTA);
 		Serial.println("znovu -Creating Accesspoint");
 		WiFi.softAP(soft_ap_ssid, soft_ap_password, 7, 0, 3);
@@ -892,6 +833,7 @@ void TCP_handler(uint8_t s, uint16_t port)
 		{
 			if (size > TX_RX_MAX_BUF_SIZE)
 				size = TX_RX_MAX_BUF_SIZE;
+
 			ret = recv(s, (u8 *)ethBuff, size);
 
 			if (ret <= 0)

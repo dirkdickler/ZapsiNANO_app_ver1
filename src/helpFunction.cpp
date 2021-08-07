@@ -1,7 +1,8 @@
 #include <Arduino.h>
-#include "define.h"
-#include "main.h" //kvolu u8,u16..
+#include "SD.h"
 #include <EEPROM.h>
+#include "main.h" //kvolu u8,u16..
+
 #include "Pin_assigment.h"
 #include "WizChip_my_API.h"
 #include "wizchip_conf.h"
@@ -187,26 +188,29 @@ uint32_t readADC_Avg(int ADC_Raw)
 	return (Sum / FILTER_LEN);
 }
 
-bool Input_digital_filtering(VSTUP_t *input_struct, uint16_t filterCas)
+static bool Input_digital_filtering(VSTUP_t *input_struct, uint16_t filterCas)
 {
 	if (digitalRead(input_struct->pin) == LOW)
 	{
+		//Serial.println("[Input filter] hlasi nula..");
 		if (input_struct->filter < filterCas)
 		{
 			input_struct->filter++;
 		}
 		else
 		{
-			input_struct->input = true;
+			input_struct->input = 1;
 		}
 	}
 	else
 	{
-		input_struct->input = false;
+		//Serial.println("[Input filter] hlasi jenda..");
+		input_struct->input = 0;
 		input_struct->filter = 0;
 	}
 	if (input_struct->input_prew != input_struct->input)
 	{
+		input_struct->input_prew = input_struct->input;
 		return true;
 	}
 	else
@@ -217,21 +221,91 @@ bool Input_digital_filtering(VSTUP_t *input_struct, uint16_t filterCas)
 
 void ScanInputs(void)
 {
+	//Serial.println("[ScanInputs] begin..");
 	bool bolaZmenaVstupu = false;
 
 	DIN[input_SDkarta].zmena = Input_digital_filtering(&DIN[input_SDkarta], filterTime_SD_CD);
 	if (DIN[input_SDkarta].zmena == true)
 	{
 		Serial.print("[ScanInputs] SD CD hlasi  zmenu a to karta: ");
-		if (DIN[input_SDkarta].input == true)
+		if (DIN[input_SDkarta].input == 1)
 		{
 			Serial.println("zasunuta");
+			if (!SD.begin(SD_CS_pin, SDSPI))
+			{
+				Serial.println("Card Mount Failed");
+			}
+			else
+			{
+				Serial.println("Card Mount OK!!...");
+
+				uint8_t cardType = SD.cardType();
+
+				if (cardType == CARD_NONE)
+				{
+					Serial.println("No SD card attached");
+					return;
+				}
+
+				Serial.print("SD Card Type: ");
+				if (cardType == CARD_MMC)
+				{
+					Serial.println("MMC");
+				}
+				else if (cardType == CARD_SD)
+				{
+					Serial.println("SDSC");
+				}
+				else if (cardType == CARD_SDHC)
+				{
+					Serial.println("SDHC");
+				}
+				else
+				{
+					Serial.println("UNKNOWN");
+				}
+
+				uint64_t cardSize = SD.cardSize() / (1024 * 1024);
+				Serial.printf("SD Card Size: %lluMB\n", cardSize);
+				Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
+				Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
+
+				File profile = SD.open("/aaa.txt", FILE_READ);
+				Serial.printf("Velkost subora je :%lu\r\n", profile.size());
+				if (!profile)
+				{
+					Serial.println("Opening file to read failed");
+				}
+				else
+				{
+					Serial.println("File Content:");
+
+					while (profile.available())
+					{
+						while (profile.available())
+						{
+							Serial.write(profile.read());
+						}
+						Serial.println("");
+						Serial.println("File read done");
+						Serial.println("=================");
+					}
+				}
+			}
 		}
 		else
 		{
 			Serial.println("vysunuta");
+			SD.end();
 		}
 	}
+	// Serial.print("[SD CD] input:");
+	// Serial.print(DIN[input_SDkarta].input);
+	// Serial.print("    inputprew:");
+	// Serial.print(DIN[input_SDkarta].input_prew);
+	// Serial.print("    inputFilter:");
+	// Serial.println(DIN[input_SDkarta].filter);
+	DIN[input_SDkarta].input_prew = DIN[input_SDkarta].input;
 
 	for (u8 i = 0; i < pocetDIN; i++)
 	{
@@ -248,10 +322,10 @@ void ScanInputs(void)
 		Serial.print("[ScanInputs] hlasi ze mam zmenu na vstupoch....");
 	}
 
-	for (u8 u = 0; u < pocetDIN; u++) //toto musi by tu na konci funkcie lebo to nastavi ze aktualny do predchoziho stavu
-	{
-		DIN[u].input_prew = DIN[u].input;
-	}
+	// for (u8 u = 0; u < pocetDIN; u++) //toto musi by tu na konci funkcie lebo to nastavi ze aktualny do predchoziho stavu
+	// {
+	// 	DIN[u].input_prew = DIN[u].input;
+	// }
 }
 
 void System_init(void)
@@ -261,11 +335,15 @@ void System_init(void)
 	DIN[input2].pin = DI2_pin;
 	DIN[input3].pin = DI3_pin;
 	DIN[input4].pin = DI4_pin;
+	DIN[input_SDkarta].pin = SD_CD_pin;
 
 	pinMode(ADC_gain_pin, OUTPUT_OPEN_DRAIN);
 	pinMode(SD_CS_pin, OUTPUT);
 	pinMode(WIZ_CS_pin, OUTPUT);
 	pinMode(WIZ_RES_pin, OUTPUT);
+
+	WizChip_RST_HI();
+	WizChip_CS_HI();
 
 	pinMode(DI1_pin, INPUT_PULLUP);
 	pinMode(DI2_pin, INPUT_PULLUP);
@@ -278,17 +356,79 @@ void System_init(void)
 	pinMode(Joy_Butt_pin, INPUT_PULLUP);
 	pinMode(Joy_left_pin, INPUT_PULLUP);
 	pinMode(Joy_right_pin, INPUT_PULLUP);
-	//digitalWrite(LedOrange, LOW);
 
-	u8 ddd[10];
+	rtc.setTime(30, 24, 15, 17, 1, 2021); // 17th Jan 2021 15:24:30
+
 	NaplnWizChipStrukturu();
 
-	SDSPI.setFrequency(25000000);
+	SDSPI.setFrequency(35000000);
 	SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
 
+	// if (!SD.begin(SD_CS_pin, SDSPI))
+	// {
+	// 	Serial.println("Card Mount Failed");
+	// }
+	// else
+	// {
+	// 	Serial.println("Card Mount OK!!...");
+
+	// 	uint8_t cardType = SD.cardType();
+
+	// 	if (cardType == CARD_NONE)
+	// 	{
+	// 		Serial.println("No SD card attached");
+	// 		return;
+	// 	}
+
+	// 	Serial.print("SD Card Type: ");
+	// 	if (cardType == CARD_MMC)
+	// 	{
+	// 		Serial.println("MMC");
+	// 	}
+	// 	else if (cardType == CARD_SD)
+	// 	{
+	// 		Serial.println("SDSC");
+	// 	}
+	// 	else if (cardType == CARD_SDHC)
+	// 	{
+	// 		Serial.println("SDHC");
+	// 	}
+	// 	else
+	// 	{
+	// 		Serial.println("UNKNOWN");
+	// 	}
+
+	// 	uint64_t cardSize = SD.cardSize() / (1024 * 1024);
+	// 	Serial.printf("SD Card Size: %lluMB\n", cardSize);
+	// 	Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
+	// 	Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
+
+	// 	File profile = SD.open("/aaa.txt", FILE_READ);
+	// 	Serial.printf("Velkost subora je :%lu\r\n", profile.size());
+	// 	if (!profile)
+	// 	{
+	// 		Serial.println("Opening file to read failed");
+	// 	}
+	// 	else
+	// 	{
+	// 		Serial.println("File Content:");
+
+	// 		while (profile.available())
+	// 		{
+	// 			while (profile.available())
+	// 			{
+	// 				Serial.write(profile.read());
+	// 			}
+	// 			Serial.println("");
+	// 			Serial.println("File read done");
+	// 			Serial.println("=================");
+	// 		}
+	// 	}
+	// }
+
 	WizChip_Reset();
-	Serial.print("[Func:System_init]  idem config 7 ");
 	WizChip_Config(&eth);
+
 	Serial.print("[Func:System_init]  end..");
 }
 

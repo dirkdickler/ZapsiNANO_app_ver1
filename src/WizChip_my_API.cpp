@@ -35,7 +35,6 @@ uint8_t wizchip_read(void)
 void WizChip_Reset(void)
 {
 	WizChip_RST_LO();
-	WizChip_CS_HI();
 	delay(50); 
 	WizChip_RST_HI();
 	delay(50); 

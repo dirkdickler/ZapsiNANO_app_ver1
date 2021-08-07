@@ -7,6 +7,7 @@
 //#include <ESPAsyncWebServer.h>
 #include "constants.h"
 #include "WizChip_my_API.h"
+#include <ESP32Time.h>
 
 typedef int32_t i32;
 typedef int16_t i16;
@@ -99,7 +100,7 @@ extern IPAddress primaryDNS;
 extern IPAddress secondaryDNS;
 extern wiz_NetInfo eth;
 extern SPIClass SDSPI;
-
+extern ESP32Time rtc;
 
 void Loop_1ms(void);
 void Loop_10ms(void);

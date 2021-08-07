@@ -94,12 +94,12 @@ typedef volatile const uint8_t vuc8;   /*!< Read Only */
 typedef struct
 {  
 	u8 typVstupu;     //klasika,citac,ci ma automaticky padat fo nule
-	uint16_t pin;
-	bool input;
-	bool input_prew;
-	uint16_t filter;
-	uint32_t counter;
-	uint16_t conter_filter;
+	u16 pin;
+	u8 input;
+	u8 input_prew;
+	u16  filter;
+	u32 counter;
+	u16 conter_filter;
 	bool zmena;
 }VSTUP_t;
 
