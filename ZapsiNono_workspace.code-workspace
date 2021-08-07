@@ -9,7 +9,8 @@
 			"wizchip_my_api.h": "c",
 			"wizchip_conf.h": "c",
 			"*.tcc": "cpp",
-			"fstream": "cpp"
+			"fstream": "cpp",
+			"w5100s.h": "c"
 		}
 	}
 }

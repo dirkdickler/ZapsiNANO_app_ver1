@@ -65,7 +65,7 @@
  * null function is called.
  */
 //void 	  wizchip_cris_enter(void)           {};
-void wizchip_cris_enter(void) {}
+void wizchip_cris_enter(void) { }
 
 /**
  * @brief Default function to disable interrupt.
@@ -73,7 +73,7 @@ void wizchip_cris_enter(void) {}
  * null function is called.
  */
 //void 	  wizchip_cris_exit(void)          {};
-void wizchip_cris_exit(void) {}
+void wizchip_cris_exit(void) { }
 
 /**
  * @brief Default function to select chip.
@@ -155,13 +155,13 @@ void wizchip_bus_writeburst(uint32_t addr, uint8_t *pBuf, uint32_t len){}
 {
     
     //.id = _WIZCHIP_ID_,
-    // .if_mode = _WIZCHIP_IO_MODE_,
+    //.if_mode = _WIZCHIP_IO_MODE_ ,
     // .CRIS._enter = wizchip_cris_enter,
     // .CRIS._exit = wizchip_cris_exit,
     // .CS._select = wizchip_cs_select,
     // .CS._deselect = wizchip_cs_deselect,
     // .IF.SPI._read_byte = wizchip_spi_readbyte,
-    // .IF.SPI._write_byte = wizchip_spi_writebyte
+    //.IF.SPI._write_byte = { wizchip_spi_writebyte}
 };
 
 // _WIZCHIP WIZCHIP =
@@ -182,6 +182,7 @@ void NaplnWizChipStrukturu(void)
 {
     //WIZCHIP.id = "W5100S\0";
     WIZCHIP.if_mode = _WIZCHIP_IO_MODE_;
+    WIZCHIP.CRIS._enter = wizchip_cris_enter;
     WIZCHIP.CRIS._exit = wizchip_cris_exit;
     WIZCHIP.CS._select = wizchip_cs_select;
     WIZCHIP.CS._deselect = wizchip_cs_deselect;

@@ -121,7 +121,7 @@ uint8_t  WIZCHIP_READ(uint32_t AddrSel)
 /**
 @brief  This function writes into W5100S memory(Buffer)
 */
-void     WIZCHIP_WRITE_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len)
+void   WIZCHIP_WRITE_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len)
 {
     uint16_t i = 0;
     int j, k, l;

@@ -280,7 +280,7 @@ void setup()
 		Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
 		Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
 
-		File profile = SD.open("/IPCONFIG.TXT", FILE_READ);
+		File profile = SD.open("/aaa.txt", FILE_READ);
 		Serial.printf("Velkost subora je :%lu\r\n", profile.size());
 		if (!profile)
 		{

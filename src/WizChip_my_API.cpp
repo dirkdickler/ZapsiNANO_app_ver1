@@ -4,15 +4,12 @@
 
 void WizChip_sendSPI_byte(uint8_t znak)
 {
-	//SDSPI.transfer(znak);
+	SDSPI.transfer(znak);
 }
 
 uint8_t WizChip_SPI_read_byte(void)
 {
-	uint8_t ptrData[10];
-	//HAL_SPI_Receive(&hspi2, ptrData, 1, 1000);
-
-	return ptrData[0];
+	return SDSPI.transfer(0);
 }
 
 void wizchip_select(void)
