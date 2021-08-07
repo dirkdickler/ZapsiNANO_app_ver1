@@ -2,6 +2,7 @@
 #define __MAIN_H
 
 #include <Arduino.h>
+#include "SPI.h"
 #include "define.h"
 //#include <ESPAsyncWebServer.h>
 #include "constants.h"
@@ -97,6 +98,8 @@ extern IPAddress subnet;
 extern IPAddress primaryDNS;
 extern IPAddress secondaryDNS;
 extern wiz_NetInfo eth;
+extern SPIClass SDSPI;
+
 
 void Loop_1ms(void);
 void Loop_10ms(void);

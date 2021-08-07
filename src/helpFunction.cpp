@@ -279,12 +279,18 @@ void System_init(void)
 	pinMode(Joy_left_pin, INPUT_PULLUP);
 	pinMode(Joy_right_pin, INPUT_PULLUP);
 	//digitalWrite(LedOrange, LOW);
+	
+    NaplnWizChipStrukturu();
+   	SDSPI.setFrequency(3500000);
+	SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
 
-    
-	WizChip_RST_LO();
-	WizChip_CS_HI();
 	WizChip_Reset();
-	WizChip_Config(&eth);
+	Serial.print("[Func:System_init]  idem config ETH.");
+	ctlnetwork(CN_SET_NETINFO, &eth);
+	Serial.print("[Func:System_init]  CN_SET_NETINFO config ETH prebehlo.");
+	ctlnetwork(CN_GET_NETINFO, &eth);
+	Serial.print("[Func:System_init]  CNGET_NETINFO config ETH prebehlo.");
+	//WizChip_Config(&eth);
 
 	Serial.print("[Func:System_init]  end..");
 }

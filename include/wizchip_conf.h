@@ -653,7 +653,8 @@ extern "C" {
      * @param nettime @ref _RTR_ value and @ref _RCR_ value. Refer to @ref wiz_NetTimeout.
      */
     void wizchip_gettimeout(wiz_NetTimeout* nettime);
-
+    
+    void NaplnWizChipStrukturu(void);
    
 #ifdef __cplusplus
 }

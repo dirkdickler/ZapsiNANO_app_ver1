@@ -238,8 +238,8 @@ void setup()
 
 	rtc.setTime(30, 24, 15, 17, 1, 2021); // 17th Jan 2021 15:24:30
 
-	SDSPI.setFrequency(3500000);
-	SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
+	// SDSPI.setFrequency(3500000);
+	// SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
 
 	if (!SD.begin(SD_CS_pin, SDSPI))
 	{
@@ -437,7 +437,7 @@ void Loop_10ms()
 		}
 	}
 
-	ScanInputs();
+	//ScanInputs();
 }
 
 void Loop_100ms(void)

@@ -1,17 +1,17 @@
 #include "Arduino.h"
 #include "WizChip_my_API.h"
+#include "main.h"
 
 void WizChip_sendSPI_byte(uint8_t znak)
 {
-	uint8_t ptrData[10];
-	ptrData[0] = znak;
-	//HAL_SPI_Transmit(&hspi2, ptrData, 1, 1000);
+	//SDSPI.transfer(znak);
 }
 
 uint8_t WizChip_SPI_read_byte(void)
 {
 	uint8_t ptrData[10];
 	//HAL_SPI_Receive(&hspi2, ptrData, 1, 1000);
+
 	return ptrData[0];
 }
 
@@ -38,11 +38,14 @@ uint8_t wizchip_read(void)
 void WizChip_Reset(void)
 {
 	WizChip_RST_LO();
+	WizChip_CS_HI();
 	delay(50); 
 	WizChip_RST_HI();
 	delay(50); 
+	
+
 	WizChip_sendSPI_byte(0xff);
-	delay(50); 
+	delay(500); 
 	wizchip_deselect();
 }
 
