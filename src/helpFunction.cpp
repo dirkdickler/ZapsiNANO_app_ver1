@@ -3,6 +3,8 @@
 #include "main.h" //kvolu u8,u16..
 #include <EEPROM.h>
 #include "Pin_assigment.h"
+#include "WizChip_my_API.h"
+#include "wizchip_conf.h"
 
 //toto spituje retezec napr cas  21:56, ti rozdeli podla delimetru ":"
 char **split(char **argv, int *argc, char *string, const char delimiter, int allowempty)
@@ -277,6 +279,12 @@ void System_init(void)
 	pinMode(Joy_left_pin, INPUT_PULLUP);
 	pinMode(Joy_right_pin, INPUT_PULLUP);
 	//digitalWrite(LedOrange, LOW);
+
+    
+	WizChip_RST_LO();
+	WizChip_CS_HI();
+	WizChip_Reset();
+	WizChip_Config(&eth);
 
 	Serial.print("[Func:System_init]  end..");
 }

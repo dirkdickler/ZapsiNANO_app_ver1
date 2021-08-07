@@ -5,6 +5,7 @@
 #include "define.h"
 //#include <ESPAsyncWebServer.h>
 #include "constants.h"
+#include "WizChip_my_API.h"
 
 typedef int32_t i32;
 typedef int16_t i16;
@@ -95,6 +96,7 @@ extern IPAddress gateway;
 extern IPAddress subnet;
 extern IPAddress primaryDNS;
 extern IPAddress secondaryDNS;
+extern wiz_NetInfo eth;
 
 void Loop_1ms(void);
 void Loop_10ms(void);

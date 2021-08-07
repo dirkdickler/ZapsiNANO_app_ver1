@@ -92,6 +92,15 @@ bool LogEnebleWebPage = false;
 
 VSTUP_t DIN[pocetDIN_celkovo];
 char TX_BUF[TX_RX_MAX_BUF_SIZE];
+//------------------------------------------------------------------------------------------------------------------
+wiz_NetInfo eth =
+	{
+		.mac = {0x80, 0x1F, 0x12, 0x56, 0xC7, 0xC9},
+		.ip = {192, 168, 1, 10},
+		.sn = {255, 255, 255, 0},
+		.gw = {192, 168, 1, 1},
+		.dns = {8, 8, 8, 8},
+		.dhcp = NETINFO_DHCP};
 
 void notifyClients()
 {
@@ -221,6 +230,8 @@ void setup()
 	Serial.begin(115200);
 	Serial.println("Spustam applikaciu.1222");
 	System_init();
+    
+
 	//attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
 	//pinMode(ENCODER1, INPUT);
 	//pinMode(ENCODER2, INPUT);
@@ -879,20 +890,22 @@ void TCP_handler(uint8_t s, uint16_t port)
 		}
 		if ((size = getSn_RX_RSR(s)) > 0) // Don't need to check SOCKERR_BUSY because it doesn't not occur.
 		{
-			if (size > TX_RX_MAX_BUF_SIZE) size = TX_RX_MAX_BUF_SIZE;
-			ret = recv(s, (u8*)ethBuff, size);
+			if (size > TX_RX_MAX_BUF_SIZE)
+				size = TX_RX_MAX_BUF_SIZE;
+			ret = recv(s, (u8 *)ethBuff, size);
 
-			if (ret <= 0) return;      // check SOCKERR_BUSY & SOCKERR_XXX. For showing the occurrence of SOCKERR_BUSY.
+			if (ret <= 0)
+				return; // check SOCKERR_BUSY & SOCKERR_XXX. For showing the occurrence of SOCKERR_BUSY.
 			size = (uint16_t)ret;
 			sentsize = 0;
 
-			if (strncmp((const char*)ethBuff, "GET", 3) == 0)// && timers.GET_request_timeout == 0 )
+			if (strncmp((const char *)ethBuff, "GET", 3) == 0) // && timers.GET_request_timeout == 0 )
 			{
 				sprintf(TX_BUF, "\r\n*****DOSLO GET!!!!");
-				send(s, (u8*)ethBuff, strlen((const char*)ethBuff));
+				send(s, (u8 *)ethBuff, strlen((const char *)ethBuff));
 			}
 			sprintf(TX_BUF, "\r\n*****Test ci ospovida Wiz5100s!");
-			send(s, (u8*)ethBuff, strlen(ethBuff));
+			send(s, (u8 *)ethBuff, strlen(ethBuff));
 		}
 		break;
 

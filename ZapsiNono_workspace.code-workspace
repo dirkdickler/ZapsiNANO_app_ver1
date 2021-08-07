@@ -7,7 +7,9 @@
 	"settings": {
 		"files.associations": {
 			"wizchip_my_api.h": "c",
-			"wizchip_conf.h": "c"
+			"wizchip_conf.h": "c",
+			"*.tcc": "cpp",
+			"fstream": "cpp"
 		}
 	}
 }
