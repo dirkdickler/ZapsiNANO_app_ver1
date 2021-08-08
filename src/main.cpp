@@ -228,7 +228,7 @@ String processor(const String &var)
 void setup()
 {
 	Serial.begin(115200);
-	Serial.println("Spustam applikaciu.6...");
+	Serial.println("Spustam applikaciu.678..");
 	System_init();
 
 	//attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
@@ -380,15 +380,18 @@ void Loop_100ms(void)
 void Loop_1sek(void)
 {
 	Serial.print("[1sek Loop]  mam 1 sek....  ");
-
+    String sprava = rtc.getTime("[%H:%M:%S] karta ");
 	if (digitalRead(SD_CD_pin) == LOW)
 	{
-		sprintf(TX_BUF, "[1sek Loop]  karta zasunota\r\n");
+		//sprintf(TX_BUF, "[1sek Loop]  karta zasunota\r\n");
+		sprava += "zasunota\r\n";
 	}
 	else
 	{
-		sprintf(TX_BUF, "[1sek Loop]  karta Vysunuta\r\n");
+		//sprintf(TX_BUF, "[1sek Loop]  karta Vysunuta\r\n");
+		sprava += "Vysunuta\r\n";
 	}
+	sprava.toCharArray(TX_BUF,TX_RX_MAX_BUF_SIZE,0);
 	send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
 
 	if (Internet_CasDostupny == false)
