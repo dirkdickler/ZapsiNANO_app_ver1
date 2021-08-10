@@ -652,3 +652,39 @@ void WiFi_connect_sequencer(void) //vplas kazdych 10 sek loop
 		}
 	}
 }
+
+int getIpBlock(int index, String str)
+{
+	char separator = '.';
+	int found = 0;
+	int strIndex[] = {0, -1};
+	int maxIndex = str.length() - 1;
+
+	for (int i = 0; i <= maxIndex && found <= index; i++)
+	{
+		if (str.charAt(i) == separator || i == maxIndex)
+		{
+			found++;
+			strIndex[0] = strIndex[1] + 1;
+			strIndex[1] = (i == maxIndex) ? i + 1 : i;
+		}
+	}
+
+	return found > index ? str.substring(strIndex[0], strIndex[1]).toInt() : 0;
+}
+
+String ipToString(IPAddress ip)
+{
+	String s = "";
+	for (int i = 0; i < 4; i++)
+		s += i ? "." + String(ip[i]) : String(ip[i]);
+	return s;
+}
+
+IPAddress str2IP(String str)
+{
+
+	IPAddress ret(getIpBlock(0, str), getIpBlock(1, str), getIpBlock(2, str), getIpBlock(3, str));
+	return ret;
+}
+

@@ -24,4 +24,9 @@ void onEvent(AsyncWebSocket *server,
 
 void WiFi_init(void);
 void WiFi_connect_sequencer(void); //vplas kazdych 10 sek loop
+
+int getIpBlock(int index, String str);
+String ipToString(IPAddress ip);
+IPAddress str2IP(String str);
+
 #endif
