@@ -3,6 +3,7 @@
 #include <elegantWebpage.h>
 #include <Hash.h>
 
+#include <Arduino_JSON.h>
 #include "SD.h"
 #include <EEPROM.h>
 #include "main.h" //kvolu u8,u16..
@@ -10,6 +11,7 @@
 #include "Pin_assigment.h"
 #include "WizChip_my_API.h"
 #include "wizchip_conf.h"
+#include "index.html"
 
 //toto spituje retezec napr cas  21:56, ti rozdeli podla delimetru ":"
 char **split(char **argv, int *argc, char *string, const char delimiter, int allowempty)
@@ -688,3 +690,135 @@ IPAddress str2IP(String str)
 	return ret;
 }
 
+String handle_LenZobraz_IP_setting(void)
+{
+	char ttt[1000];
+	char NazovSiete[56] = {"nazovSiete\0"};
+	char ippadresa[56];
+	char maskaIP[56];
+	char brana[56];
+
+	EEPROM.readString(EE_NazovSiete, NazovSiete, 16);
+	IPAddress ip = WiFi.localIP();
+	String stt = ipToString(ip);
+	stt.toCharArray(ippadresa, 16);
+	stt = ipToString(WiFi.subnetMask());
+	stt.toCharArray(maskaIP, 16);
+	stt = ipToString(WiFi.gatewayIP());
+	stt.toCharArray(brana, 16);
+
+	Serial.print("\r\nVyparsrovane IP: ");
+	Serial.print(ippadresa);
+	Serial.print("\r\nVyparsrovane MASKa: ");
+	Serial.print(maskaIP);
+	Serial.print("\r\nVyparsrovane Brana: ");
+	Serial.print(brana);
+
+	sprintf(ttt, LenzobrazIP_html, ippadresa, maskaIP, brana, NazovSiete);
+	return ttt;
+	//server.send (200, "text/html", ttt);
+}
+
+String handle_Zadavanie_IP_setting(void)
+{
+	char ttt[1000];
+	char NazovSiete[56] = {"nazovSiete\0"};
+	char HesloSiete[56] = {"HesloSiete\0"};
+	char ippadresa[56];
+	char maskaIP[56];
+	char brana[56];
+
+	IPAddress ip = WiFi.localIP();
+	String stt = ipToString(ip);
+	stt.toCharArray(ippadresa, 16);
+	stt = ipToString(WiFi.subnetMask());
+	stt.toCharArray(maskaIP, 16);
+	stt = ipToString(WiFi.gatewayIP());
+	stt.toCharArray(brana, 16);
+
+	EEPROM.readString(EE_NazovSiete, NazovSiete, 16);
+	Serial.print("\r\nNazov siete: ");
+	Serial.print(NazovSiete);
+
+	EEPROM.readString(EE_Heslosiete, HesloSiete, 16);
+	Serial.print("\r\nHeslo siete: ");
+	Serial.print(HesloSiete);
+
+	Serial.print("\r\nVyparsrovane IP: ");
+	Serial.print(ippadresa);
+	Serial.print("\r\nVyparsrovane MASKa: ");
+	Serial.print(maskaIP);
+	Serial.print("\r\nVyparsrovane Brana: ");
+	Serial.print(brana);
+
+	sprintf(ttt, zadavaci_html, ippadresa, maskaIP, brana, NazovSiete, HesloSiete);
+	//Serial.print ("\r\nToto je bufer pre stranky:\r\n");
+	//Serial.print(ttt);
+
+	return ttt;
+}
+
+void handle_Nastaveni(AsyncWebServerRequest *request)
+{
+	String inputMessage;
+	String inputParam;
+	Serial.println("Mam tu nastaveni");
+
+	if (request->hasParam("input1"))
+	{
+		inputMessage = request->getParam("input1")->value();
+		if (inputMessage.length() < 16)
+		{
+			EEPROM.writeString(EE_IPadresa, inputMessage);
+		}
+	}
+
+	if (request->hasParam("input2"))
+	{
+		inputMessage = request->getParam("input2")->value();
+		if (inputMessage.length() < 16)
+		{
+			EEPROM.writeString(EE_SUBNET, inputMessage);
+		}
+	}
+
+	if (request->hasParam("input3"))
+	{
+		inputMessage = request->getParam("input3")->value();
+		if (inputMessage.length() < 16)
+		{
+			EEPROM.writeString(EE_Brana, inputMessage);
+		}
+	}
+
+	if (request->hasParam("input4"))
+	{
+		inputMessage = request->getParam("input4")->value();
+		if (inputMessage.length() < 16)
+		{
+			EEPROM.writeString(EE_NazovSiete, inputMessage);
+		}
+	}
+
+	if (request->hasParam("input5"))
+	{
+		inputMessage = request->getParam("input5")->value();
+		if (inputMessage.length() < 20)
+		{
+			EEPROM.writeString(EE_Heslosiete, inputMessage);
+		}
+	}
+
+	EEPROM.commit();
+}
+
+void OdosliStrankeVytapeniData(void)
+{
+	//ObjTopeni["tep1"] = room[0].T_vzduch;
+	//ObjTopeni["hum1"] = room[0].RH_vlhkkost;
+
+	String jsonString = JSON.stringify(ObjTopeni);
+	Serial.print("[ event -VratNamerane_TaH] Odosielam strankam ObjTopeni:");
+	//Serial.println(jsonString);
+	ws.textAll(jsonString);
+}

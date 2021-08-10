@@ -8,6 +8,7 @@
 #include "constants.h"
 #include "WizChip_my_API.h"
 #include <ESP32Time.h>
+#include <Arduino_JSON.h>
 
 typedef int32_t i32;
 typedef int16_t i16;
@@ -106,6 +107,7 @@ extern IPAddress secondaryDNS;
 extern wiz_NetInfo eth;
 extern SPIClass SDSPI;
 extern ESP32Time rtc;
+extern JSONVar myObject, myObject2, ObjDatumCas, ObjTopeni, JSON_DebugMsg;
 
 extern bool Internet_CasDostupny;
 extern bool RTC_cas_OK;
