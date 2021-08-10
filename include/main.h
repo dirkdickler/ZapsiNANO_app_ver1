@@ -90,6 +90,11 @@ typedef struct
 #define NOKcode_missingData 3	//chynaju data v pakete
 #define NOKcode_naznamyMSGID 4	//
 
+extern const char *soft_ap_ssid;
+extern const char *soft_ap_password;
+extern AsyncWebServer server;
+extern AsyncWebSocket ws;
+
 extern VSTUP_t DIN[pocetDIN_celkovo];
 extern char NazovSiete[30];
 extern char Heslo[30];
@@ -101,6 +106,9 @@ extern IPAddress secondaryDNS;
 extern wiz_NetInfo eth;
 extern SPIClass SDSPI;
 extern ESP32Time rtc;
+
+extern bool Internet_CasDostupny;
+extern bool RTC_cas_OK;
 
 void Loop_1ms(void);
 void Loop_10ms(void);

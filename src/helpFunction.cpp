@@ -1,4 +1,8 @@
 #include <Arduino.h>
+#include <AsyncElegantOTA.h> //https://randomnerdtutorials.com/esp32-ota-over-the-air-arduino/#1-basic-elegantota
+#include <elegantWebpage.h>
+#include <Hash.h>
+
 #include "SD.h"
 #include <EEPROM.h>
 #include "main.h" //kvolu u8,u16..
@@ -293,7 +297,7 @@ void ScanInputs(void)
 					unsigned long end = micros();
 					unsigned long delta = end - start;
 					Serial.print("DELTA: ");
-					Serial.println(delta); 
+					Serial.println(delta);
 				}
 			}
 		}
@@ -365,7 +369,6 @@ void System_init(void)
 
 	NaplnWizChipStrukturu();
 
-	
 	SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
 
 	// if (!SD.begin(SD_CS_pin, SDSPI))
@@ -472,5 +475,180 @@ int8_t NacitajEEPROM_setting(void)
 		sprintf(NazovSiete, "semiart");
 		sprintf(Heslo, "aabbccddff");
 		return 1;
+	}
+}
+
+//** ked Webstrenaky - jejich ws posle nejake data napriklad "VratMiCas" tj ze strnaky chcu RTC aby ich napriklad zobrazili
+void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
+{
+	AwsFrameInfo *info = (AwsFrameInfo *)arg;
+	if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
+	{
+		data[len] = 0;
+
+		if (strcmp((char *)data, "VratMiCas") == 0)
+		{
+			OdosliCasDoWS();
+
+			//notifyClients();
+		}
+		else if (strcmp((char *)data, "VratNamerane_TaH") == 0)
+		{
+			Serial.println("stranky poslali: VratNamerane_TaH ");
+
+			OdosliStrankeVytapeniData();
+		}
+
+		else if (strcmp((char *)data, "ZaluzieAllOpen") == 0)
+		{
+			//Send:02 43 64 00 02 00 0e 80 0e 00 00 00 b8
+			u8 loc_buf[14] = {0x2, 0x43, 0x64, 0x0, 0x2, 0x0, 0x0e, 0x80, 0x0e, 0x0, 0x0, 0x0, 0xb8};
+			Serial.println("stranky poslali: ZaluzieVsetkyOtvor");
+
+			//Serial1.print("test RS485..Zaluzie All open.. ");
+			for (u8 i = 0; i < 13; i++)
+			{
+				Serial1.write(loc_buf[i]);
+			}
+			String rr = "[HndlWebSocket] To RS485 posielam OTVOR zaluzie\r\n";
+			DebugMsgToWebSocket(rr);
+		}
+		else if (strcmp((char *)data, "ZaluzieAllStop") == 0)
+		{
+			//Send:02 43 64 00 02 00 0c 80 0c 00 00 00 bc
+			u8 loc_buf[14] = {0x2, 0x43, 0x64, 0x0, 0x2, 0x0, 0x0c, 0x80, 0x0c, 0x0, 0x0, 0x0, 0xbc};
+			Serial.println("stranky poslali: ZaluzieAllStop ");
+
+			//Serial1.println("test RS485..Zaluzie All Stop.. ");
+			for (u8 i = 0; i < 13; i++)
+			{
+				Serial1.write(loc_buf[i]);
+			}
+
+			String rr = "[HndlWebSocket] To RS485 posielam STOP zaluzie\r\n";
+			DebugMsgToWebSocket(rr);
+		}
+
+		else if (strcmp((char *)data, "ZaluzieAllClose") == 0)
+		{
+			//Send:02 43 64 00 02 00 0d 80 0d 00 00 00 ba
+			u8 loc_buf[14] = {0x02, 0x43, 0x64, 0x0, 0x2, 0x0, 0x0d, 0x80, 0x0d, 0x0, 0x0, 0x0, 0xba};
+			Serial.println("stranky poslali: ZaluzieVsetky zatvor");
+
+			//Serial1.println("test RS485..Zaluzie All close.. ");
+			for (u8 i = 0; i < 13; i++)
+			{
+				Serial1.write(loc_buf[i]);
+			}
+			String rr = "[HndlWebSocket] To RS485 posielam ZATVOR zaluzie\r\n";
+			DebugMsgToWebSocket(rr);
+		}
+	}
+}
+
+void onEvent(AsyncWebSocket *server,
+			 AsyncWebSocketClient *client,
+			 AwsEventType type,
+			 void *arg,
+			 uint8_t *data,
+			 size_t len)
+{
+	switch (type)
+	{
+	case WS_EVT_CONNECT:
+		Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+		break;
+	case WS_EVT_DISCONNECT:
+		Serial.printf("WebSocket client #%u disconnected\n", client->id());
+		break;
+	case WS_EVT_DATA:
+		handleWebSocketMessage(arg, data, len);
+		break;
+	case WS_EVT_PONG:
+	case WS_EVT_ERROR:
+		break;
+	}
+}
+
+void WiFi_init(void)
+{
+	WiFi.mode(WIFI_MODE_APSTA);
+	Serial.println("Creating Accesspoint");
+	WiFi.softAP(soft_ap_ssid, soft_ap_password, 7, 0, 3);
+	Serial.print("IP address:\t");
+	Serial.println(WiFi.softAPIP());
+
+	if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+	{
+		Serial.println("STA Failed to configure");
+	}
+
+	WiFi.begin(NazovSiete, Heslo);
+	u8_t aa = 0;
+	while (WiFi.waitForConnectResult() != WL_CONNECTED && aa < 2)
+	{
+		Serial.print(".");
+		aa++;
+	}
+	// Print ESP Local IP Address
+	Serial.println(WiFi.localIP());
+
+	ws.onEvent(onEvent);	//initWebSocket();
+	server.addHandler(&ws); //initWebSocket();
+
+	FuncServer_On();
+
+	AsyncElegantOTA.begin(&server, "qqq", "www"); // Start ElegantOTA
+
+	server.begin();
+}
+
+void WiFi_connect_sequencer(void) //vplas kazdych 10 sek loop
+{
+	static u8_t loc_cnt_10sek = 0;
+
+	Serial.print("Wifi status:");
+	Serial.println(WiFi.status());
+
+	//https://randomnerdtutorials.com/esp32-useful-wi-fi-functions-arduino/
+	if (WiFi.status() != WL_CONNECTED)
+	{
+		loc_cnt_10sek++;
+		Internet_CasDostupny = false;
+	}
+	else
+	{
+		loc_cnt_10sek = 0;
+		Serial.println("[10sek] Parada WIFI je Connect davam loc_cnt na Nula");
+
+		//TODO ak je Wifi connect tak pocitam ze RTC cas bude OK este dorob
+		Internet_CasDostupny = true;
+		RTC_cas_OK = true;
+	}
+
+	if (loc_cnt_10sek == 2)
+	{
+		Serial.println("[10sek] Odpajam WIFI, lebo wifi nieje: WL_CONNECTED ");
+		WiFi.disconnect(1, 1);
+	}
+	else if (loc_cnt_10sek == 3)
+	{
+		loc_cnt_10sek = 255;
+		WiFi.mode(WIFI_MODE_APSTA);
+		Serial.println("znovu -Creating Accesspoint");
+		WiFi.softAP(soft_ap_ssid, soft_ap_password, 7, 0, 3);
+
+		if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+		{
+			Serial.println("STA Failed to configure");
+		}
+		Serial.println("znovu -Wifi begin");
+		WiFi.begin(NazovSiete, Heslo);
+		u8_t aa = 0;
+		while (WiFi.waitForConnectResult() != WL_CONNECTED && aa < 2)
+		{
+			Serial.print(".");
+			aa++;
+		}
 	}
 }

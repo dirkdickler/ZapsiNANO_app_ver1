@@ -14,4 +14,14 @@ void ScanInputs(void);
 void System_init(void);
 int8_t NacitajEEPROM_setting(void);
 
+void handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
+void onEvent(AsyncWebSocket *server,
+             AsyncWebSocketClient *client,
+             AwsEventType type,
+             void *arg,
+             uint8_t *data,
+             size_t len);
+
+void WiFi_init(void);
+void WiFi_connect_sequencer(void); //vplas kazdych 10 sek loop
 #endif
