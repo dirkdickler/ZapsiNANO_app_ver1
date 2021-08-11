@@ -65,8 +65,8 @@ IPAddress primaryDNS(8, 8, 8, 8);	//optional
 IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
 const char *ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 3600;
-const int daylightOffset_sec = 3600; //letny cas
+const long gmtOffset_sec = 0;//3600;
+const int daylightOffset_sec = 0;//3600; //letny cas
 struct tm MyRTC_cas;
 bool Internet_CasDostupny = false; //to je ze dostava cas z Inernetu
 bool RTC_cas_OK = false;			  //ze mam RTC fakt nastaveny bud z interneru, alebo nastaveny manualne
@@ -98,7 +98,7 @@ wiz_NetInfo eth =
 void setup()
 {
 	Serial.begin(115200);
-	Serial.println("Spustam applikaciu.ab..");
+	Serial.println("Spustam applikaciu.a1");
 	System_init();
 
 	//attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
@@ -466,7 +466,7 @@ void TCP_handler(uint8_t s, uint16_t port)
 		{
 			if (size > TX_RX_MAX_BUF_SIZE)
 				size = TX_RX_MAX_BUF_SIZE;
-
+            SDSPI.setFrequency(20000000); //TODO tu mas zmenu frekvencie
 			ret = recv(s, (u8 *)ethBuff, size);
 
 			if (ret <= 0)

@@ -238,7 +238,7 @@ void ScanInputs(void)
 		{
 			Serial.println("zasunuta");
 			unsigned long start = micros();
-			if (!SD.begin(SD_CS_pin, SDSPI))
+			if (!SD.begin(SD_CS_pin, SDSPI,10000000))
 			{
 				Serial.println("Card Mount Failed");
 			}
@@ -367,19 +367,23 @@ void System_init(void)
 	pinMode(Joy_left_pin, INPUT_PULLUP);
 	pinMode(Joy_right_pin, INPUT_PULLUP);
 
-	rtc.setTime(30, 24, 15, 17, 1, 2021); // 17th Jan 2021 15:24:30
+	rtc.setTime(30, 24, 8, 17, 1, 2021); // 17th Jan 2021 15:24:30
 
 	NaplnWizChipStrukturu();
-
+     
+	SDSPI.setFrequency(10000000); // nezabudni ze pri SD.begin(SD_CS_pin, SDSPI,10000000)) budes menit fre na hodnotu v zavorkach
+	//SDSPI.setClockDivider(SPI_CLOCK_DIV2);
 	SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
-
-	// if (!SD.begin(SD_CS_pin, SDSPI))
+    
+	
+	
+	// if (!SD.begin(SD_CS_pin, SDSPI)) 
 	// {
 	// 	Serial.println("Card Mount Failed");
 	// }
 	// else
 	// {
-	// 	Serial.println("Card Mount OK!!...");
+	// 	Serial.println("Card Mount OK!!..."); 
 
 	// 	uint8_t cardType = SD.cardType();
 
@@ -387,7 +391,7 @@ void System_init(void)
 	// 	{
 	// 		Serial.println("No SD card attached");
 	// 		return;
-	// 	}
+	// 	} 
 
 	// 	Serial.print("SD Card Type: ");
 	// 	if (cardType == CARD_MMC)
