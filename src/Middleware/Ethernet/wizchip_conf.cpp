@@ -52,8 +52,8 @@
 #include <stddef.h>
 //
 #include <stdio.h>
-#include "wizchip_conf.h"
-#include "WizChip_my_API.h"
+#include "Middleware\Ethernet\wizchip_conf.h"
+#include "Middleware\Ethernet\WizChip_my_API.h"
 
 /////////////
 //M20150401 : Remove ; in the default callback function such as wizchip_cris_enter(), wizchip_cs_select() and etc.

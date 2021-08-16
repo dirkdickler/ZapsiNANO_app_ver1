@@ -45,7 +45,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include "Pin_assigment.h"
-    
+
 #include "Middleware\Ethernet\wizchip_conf.h"
 #include "Middleware\Ethernet\socket.h"
 #include "Middleware\Ethernet\w5100s\w5100s.h"

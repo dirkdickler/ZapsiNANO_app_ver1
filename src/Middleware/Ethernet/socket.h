@@ -88,7 +88,7 @@
 extern "C" {
 #endif
 
-#include "wizchip_conf.h"
+#include "Middleware\Ethernet\wizchip_conf.h"
 
 #define SOCKET                uint8_t  ///< SOCKET type define for legacy driver
 

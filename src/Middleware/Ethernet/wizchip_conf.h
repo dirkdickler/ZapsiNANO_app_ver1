@@ -118,7 +118,7 @@ extern "C" {
 //A20150601 : Define the unit of IO DATA.
     typedef   uint8_t   iodata_t;
     //A20150401 : Indclude W5100.h file
-#include "w5100s.h"
+#include "Middleware\Ethernet\w5100s\w5100s.h"
 #elif (_WIZCHIP_ == W5200)
 #define _WIZCHIP_ID_                "W5200\0"
 /**

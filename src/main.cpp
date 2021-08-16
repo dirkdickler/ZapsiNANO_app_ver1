@@ -21,13 +21,18 @@
 #include <ESP32Time.h>
 #include "HelpFunction.h"
 #include "Pin_assigment.h"
-#include "WizChip_my_API.h"
+#include "Middleware\Ethernet\WizChip_my_API.h"
+
+#include "Middleware\LTC298X\LTC298X.h" 
+//#include "Middleware\Ethernet\w5100s\w5100s.h"
 
 #define ENCODER1 2
 #define ENCODER2 3
 volatile long int encoder_pos = 0;
 int AN_Pot1_Raw = 0;
 int AN_Pot1_Filtered = 0;
+
+LTC298X eeee(3);
 
 // Replace with your network credentials
 //const char* ssid = "Grabcovi";
@@ -106,6 +111,8 @@ void setup()
 	//pinMode(ENCODER2, INPUT);
 
 	ESPinfo();
+
+    eeee.begin();	
 
 	myObject["hello"] = " 11:22 Streda";
 	myObject["true"] = true;

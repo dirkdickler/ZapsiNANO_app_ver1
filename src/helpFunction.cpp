@@ -10,7 +10,7 @@
 
 #include "Pin_assigment.h"
 #include "WizChip_my_API.h"
-#include "wizchip_conf.h"
+#include "Middleware\Ethernet\wizchip_conf.h"
 #include "index.html"
 
 //toto spituje retezec napr cas  21:56, ti rozdeli podla delimetru ":"
