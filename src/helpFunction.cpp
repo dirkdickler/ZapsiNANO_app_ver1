@@ -174,24 +174,21 @@ bool SkontrolujCiJePovolenyDenvTyzdni(u8 Obraz, tm *timeInfoPRT)
 
 #define AN_Pot1 35
 #define FILTER_LEN 15
-uint32_t AN_Pot1_Buffer[FILTER_LEN] = {0};
-int AN_Pot1_i = 0;
 
-uint32_t readADC_Avg(int ADC_Raw)
+u16 readADC_Avg(void)
 {
-	int i = 0;
-	uint32_t Sum = 0;
-
-	AN_Pot1_Buffer[AN_Pot1_i++] = ADC_Raw;
-	if (AN_Pot1_i == FILTER_LEN)
+	static u32 AN_acuuVal;
+	static u8 AN_SCT_index = 0;
+	static u16 Predchozi = 0;
+    
+	AN_acuuVal += analogRead(ADC_curren_pin);
+	if (++AN_SCT_index == FILTER_LEN)
 	{
-		AN_Pot1_i = 0;
+		Predchozi = (u16)(AN_acuuVal /= FILTER_LEN);
+		AN_acuuVal = 0;
+		AN_SCT_index = 0;
 	}
-	for (i = 0; i < FILTER_LEN; i++)
-	{
-		Sum += AN_Pot1_Buffer[i];
-	}
-	return (Sum / FILTER_LEN);
+	return Predchozi;
 }
 
 static bool Input_digital_filtering(VSTUP_t *input_struct, uint16_t filterCas)
@@ -238,7 +235,7 @@ void ScanInputs(void)
 		{
 			Serial.println("zasunuta");
 			unsigned long start = micros();
-			if (!SD.begin(SD_CS_pin, SDSPI,10000000))
+			if (!SD.begin(SD_CS_pin, SDSPI, 10000000))
 			{
 				Serial.println("Card Mount Failed");
 			}
@@ -370,20 +367,18 @@ void System_init(void)
 	rtc.setTime(30, 24, 8, 17, 1, 2021); // 17th Jan 2021 15:24:30
 
 	NaplnWizChipStrukturu();
-     
+
 	SDSPI.setFrequency(10000000); // nezabudni ze pri SD.begin(SD_CS_pin, SDSPI,10000000)) budes menit fre na hodnotu v zavorkach
 	//SDSPI.setClockDivider(SPI_CLOCK_DIV2);
 	SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
-    
-	
-	
-	// if (!SD.begin(SD_CS_pin, SDSPI)) 
+
+	// if (!SD.begin(SD_CS_pin, SDSPI))
 	// {
 	// 	Serial.println("Card Mount Failed");
 	// }
 	// else
 	// {
-	// 	Serial.println("Card Mount OK!!..."); 
+	// 	Serial.println("Card Mount OK!!...");
 
 	// 	uint8_t cardType = SD.cardType();
 
@@ -391,7 +386,7 @@ void System_init(void)
 	// 	{
 	// 		Serial.println("No SD card attached");
 	// 		return;
-	// 	} 
+	// 	}
 
 	// 	Serial.print("SD Card Type: ");
 	// 	if (cardType == CARD_MMC)

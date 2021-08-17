@@ -26,8 +26,7 @@
 #define ENCODER1 2
 #define ENCODER2 3
 volatile long int encoder_pos = 0;
-int AN_Pot1_Raw = 0;
-int AN_Pot1_Filtered = 0;
+u16 AN_Pot1_Raw = 0;
 
 // Replace with your network credentials
 //const char* ssid = "Grabcovi";
@@ -73,8 +72,7 @@ bool RTC_cas_OK = false;		   //ze mam RTC fakt nastaveny bud z interneru, alebo 
 								   //a to teda ze v RTC mam fakr realny cas
 								   //Tento FLAG, nastavi len pri nacitanie casu z internutu, alebo do buducna manualne nastavenie casu cew WEB
 
-const u8 mojePrmenaae = 25;
-u16_t cnt = 0;
+u16_t SCT_prud_0 = 0;
 
 char gloBuff[200];
 bool LogEnebleWebPage = false;
@@ -148,8 +146,7 @@ void loop()
 
 void Loop_1ms()
 {
-	AN_Pot1_Raw = analogRead(ADC_curren_pin);
-	AN_Pot1_Filtered = readADC_Avg(AN_Pot1_Raw);
+	SCT_prud_0 = readADC_Avg();
 }
 
 void Loop_10ms()
@@ -221,17 +218,22 @@ void Loop_100ms(void)
 void Loop_1sek(void)
 {
 	Serial.print("[1sek Loop]  mam 1 sek....  ");
-	String sprava = rtc.getTime("[%H:%M:%S] karta ");
+	String sprava = rtc.getTime("\r\n[%H:%M:%S] karta ");
 	if (digitalRead(SD_CD_pin) == LOW)
 	{
 		//sprintf(TX_BUF, "[1sek Loop]  karta zasunota\r\n");
-		sprava += "Zasunuta\r\n";
+		sprava += "Zasunuta";
 	}
 	else
 	{
 		//sprintf(TX_BUF, "[1sek Loop]  karta Vysunuta\r\n");
-		sprava += "Vysunuta\r\n";
+		sprava += "Vysunuta";
 	}
+
+	
+	char tt[100];
+	sprintf(tt, "   SCTprud: %uA\r\n",SCT_prud_0);
+	sprava += tt;
 	TCP_debugMsg(sprava);
 	//sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
 	//send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
@@ -254,7 +256,7 @@ void Loop_1sek(void)
 void Loop_10sek(void)
 {
 	static u8_t loc_cnt_10sek = 0;
-	String sprava = "\r\n[10sek Loop]  Mam Loop 10 sek..........\r\n"; 
+	String sprava = "\r\n[10sek Loop]  Mam Loop 10 sek..........\r\n";
 	Serial.println(sprava);
 	TCP_debugMsg(sprava);
 	//DebugMsgToWebSocket("[10sek Loop]  mam 10 sek....\r\n");
@@ -513,5 +515,3 @@ void TCP_handler(uint8_t s, uint16_t port)
 	}
 }
 //******************************************************************************************************************************
-
-
