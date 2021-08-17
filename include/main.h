@@ -111,6 +111,7 @@ extern JSONVar myObject, myObject2, ObjDatumCas, ObjTopeni, JSON_DebugMsg;
 
 extern bool Internet_CasDostupny;
 extern bool RTC_cas_OK;
+extern char TX_BUF[];
 
 void Loop_1ms(void);
 void Loop_10ms(void);

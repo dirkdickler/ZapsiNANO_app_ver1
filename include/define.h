@@ -1,9 +1,11 @@
 ﻿#ifndef __DEFINE_H
 #define __DEFINE_H
 
+#define TCP_debug 1
 #define  pocetHTTPspojeni 2
 #define  TX_RX_MAX_BUF_SIZE 4096
 #define TCP_10001_socket 3
+
 
 #define input1 0
 #define input2 1

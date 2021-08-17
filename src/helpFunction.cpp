@@ -826,3 +826,11 @@ void OdosliStrankeVytapeniData(void)
 	//Serial.println(jsonString);
 	ws.textAll(jsonString);
 }
+
+void TCP_debugMsg(String sprava)
+{
+#ifdef TCP_debug
+	sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
+	send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
+#endif
+}

@@ -1,4 +1,4 @@
-// Import required libraries
+
 #include <string.h>
 #include <stdlib.h>
 #include <Arduino.h>
@@ -23,13 +23,11 @@
 #include "Pin_assigment.h"
 #include "Middleware\Ethernet\WizChip_my_API.h"
 
-
 #define ENCODER1 2
 #define ENCODER2 3
 volatile long int encoder_pos = 0;
 int AN_Pot1_Raw = 0;
 int AN_Pot1_Filtered = 0;
-
 
 // Replace with your network credentials
 //const char* ssid = "Grabcovi";
@@ -40,7 +38,6 @@ const char *soft_ap_password = "aaaaaaaaaa";
 //const char *password = "aabbccddff";
 char NazovSiete[30];
 char Heslo[30];
-
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -68,13 +65,13 @@ IPAddress primaryDNS(8, 8, 8, 8);	//optional
 IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
 const char *ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 0;//3600;
-const int daylightOffset_sec = 0;//3600; //letny cas
+const long gmtOffset_sec = 0;	  //3600;
+const int daylightOffset_sec = 0; //3600; //letny cas
 struct tm MyRTC_cas;
 bool Internet_CasDostupny = false; //to je ze dostava cas z Inernetu
-bool RTC_cas_OK = false;			  //ze mam RTC fakt nastaveny bud z interneru, alebo nastaveny manualne
-										  //a to teda ze v RTC mam fakr realny cas
-										  //Tento FLAG, nastavi len pri nacitanie casu z internutu, alebo do buducna manualne nastavenie casu cew WEB
+bool RTC_cas_OK = false;		   //ze mam RTC fakt nastaveny bud z interneru, alebo nastaveny manualne
+								   //a to teda ze v RTC mam fakr realny cas
+								   //Tento FLAG, nastavi len pri nacitanie casu z internutu, alebo do buducna manualne nastavenie casu cew WEB
 
 const u8 mojePrmenaae = 25;
 u16_t cnt = 0;
@@ -145,14 +142,14 @@ void loop()
 	timer_100ms.update();
 	timer_1sek.update();
 	timer_10sek.update();
+
+	TCP_handler(TCP_10001_socket, 10001);
 }
 
 void Loop_1ms()
 {
 	AN_Pot1_Raw = analogRead(ADC_curren_pin);
 	AN_Pot1_Filtered = readADC_Avg(AN_Pot1_Raw);
-
-	TCP_handler(TCP_10001_socket, 10001);
 }
 
 void Loop_10ms()
@@ -228,15 +225,16 @@ void Loop_1sek(void)
 	if (digitalRead(SD_CD_pin) == LOW)
 	{
 		//sprintf(TX_BUF, "[1sek Loop]  karta zasunota\r\n");
-		sprava += "zasunota\r\n";
+		sprava += "Zasunuta\r\n";
 	}
 	else
 	{
 		//sprintf(TX_BUF, "[1sek Loop]  karta Vysunuta\r\n");
 		sprava += "Vysunuta\r\n";
 	}
-	sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
-	send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
+	TCP_debugMsg(sprava);
+	//sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
+	//send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
 
 	if (Internet_CasDostupny == false)
 	{
@@ -256,7 +254,9 @@ void Loop_1sek(void)
 void Loop_10sek(void)
 {
 	static u8_t loc_cnt_10sek = 0;
-	Serial.println("\r\n[10sek Loop]  Mam Loop 10 sek..........");
+	String sprava = "\r\n[10sek Loop]  Mam Loop 10 sek..........\r\n"; 
+	Serial.println(sprava);
+	TCP_debugMsg(sprava);
 	//DebugMsgToWebSocket("[10sek Loop]  mam 10 sek....\r\n");
 
 	//TODOtu si teraz spra ukaldanie analogu a digital cnt na do RAM or do SD karty
@@ -434,7 +434,6 @@ void ESPinfo(void)
 	Serial.println("\r\n*******************************************************************");
 }
 
-
 void encoder()
 {
 
@@ -469,7 +468,7 @@ void TCP_handler(uint8_t s, uint16_t port)
 		{
 			if (size > TX_RX_MAX_BUF_SIZE)
 				size = TX_RX_MAX_BUF_SIZE;
-            SDSPI.setFrequency(20000000); //TODO tu mas zmenu frekvencie
+			SDSPI.setFrequency(20000000); //TODO tu mas zmenu frekvencie
 			ret = recv(s, (u8 *)ethBuff, size);
 
 			if (ret <= 0)
@@ -514,3 +513,5 @@ void TCP_handler(uint8_t s, uint16_t port)
 	}
 }
 //******************************************************************************************************************************
+
+
