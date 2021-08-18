@@ -26,7 +26,7 @@
 #define ENCODER1 2
 #define ENCODER2 3
 volatile long int encoder_pos = 0;
-u16 AN_Pot1_Raw = 0;
+
 
 // Replace with your network credentials
 //const char* ssid = "Grabcovi";
