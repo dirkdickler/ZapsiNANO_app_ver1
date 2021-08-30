@@ -27,7 +27,6 @@
 #define ENCODER2 3
 volatile long int encoder_pos = 0;
 
-
 // Replace with your network credentials
 //const char* ssid = "Grabcovi";
 //const char* password = "40177298";
@@ -76,7 +75,7 @@ u16_t SCT_prud_0 = 0;
 
 char gloBuff[200];
 bool LogEnebleWebPage = false;
-
+static u8 LogBuffer[8192];
 VSTUP_t DIN[pocetDIN_celkovo];
 char TX_BUF[TX_RX_MAX_BUF_SIZE];
 //------------------------------------------------------------------------------------------------------------------
@@ -104,11 +103,27 @@ void setup()
 	//pinMode(ENCODER2, INPUT);
 
 	ESPinfo();
-
-	myObject["hello"] = " 11:22 Streda";
+	
+	myObject["Parameter"]["gateway"]["value"] = " 11:22 Streda";
+	myObject["tes"]["ddd"] = 42;
+	myObject["hello"] = "11:22 Streda";
 	myObject["true"] = true;
 	myObject["x"] = 42;
-	myObject2["Citac"] = 42;
+	myObject2["Citac"] = "ahojj";
+
+	String jsonString = JSON.stringify(myObject);
+	Serial.print("JSON strinf dump");
+	Serial.println(jsonString);
+
+	Serial.print("myObject.keys() = ");
+    Serial.println(myObject.keys()); 
+
+    myObject2["Citac"] = myObject["Parameter"]["gateway"]["value"]; 
+	jsonString = JSON.stringify(myObject2);
+	Serial.print("JSON2 strinf dump");
+	Serial.println(jsonString);
+	
+
 
 	NacitajEEPROM_setting();
 
@@ -230,9 +245,8 @@ void Loop_1sek(void)
 		sprava += "Vysunuta";
 	}
 
-	
 	char tt[100];
-	sprintf(tt, "   SCTprud: %uA\r\n",SCT_prud_0);
+	sprintf(tt, "   SCTprud: %uA\r\n", SCT_prud_0);
 	sprava += tt;
 	TCP_debugMsg(sprava);
 	//sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
