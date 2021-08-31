@@ -75,7 +75,12 @@ u16_t SCT_prud_0 = 0;
 
 char gloBuff[200];
 bool LogEnebleWebPage = false;
+
 static u8 LogBuffer[8192];
+static u16 LogBufferPocetZaznamov = 0;
+static u16 LogBufferIndex = 0;
+static ZAZNAM_t zaznam;
+
 VSTUP_t DIN[pocetDIN_celkovo];
 char TX_BUF[TX_RX_MAX_BUF_SIZE];
 //------------------------------------------------------------------------------------------------------------------
@@ -103,7 +108,7 @@ void setup()
 	//pinMode(ENCODER2, INPUT);
 
 	ESPinfo();
-	
+
 	myObject["Parameter"]["gateway"]["value"] = " 11:22 Streda";
 	myObject["tes"]["ddd"] = 42;
 	myObject["hello"] = "11:22 Streda";
@@ -116,14 +121,12 @@ void setup()
 	Serial.println(jsonString);
 
 	Serial.print("myObject.keys() = ");
-    Serial.println(myObject.keys()); 
+	Serial.println(myObject.keys());
 
-    myObject2["Citac"] = myObject["Parameter"]["gateway"]["value"]; 
+	myObject2["Citac"] = myObject["Parameter"]["gateway"]["value"];
 	jsonString = JSON.stringify(myObject2);
 	Serial.print("JSON2 strinf dump");
 	Serial.println(jsonString);
-	
-
 
 	NacitajEEPROM_setting();
 
@@ -276,14 +279,31 @@ void Loop_10sek(void)
 	//DebugMsgToWebSocket("[10sek Loop]  mam 10 sek....\r\n");
 
 	//TODOtu si teraz spra ukaldanie analogu a digital cnt na do RAM or do SD karty
-	//{
+	{
+		u8 loc_dataBuff[32];
 
-	//tu pred touto loop musis mat uz ulozene DIN.counters, lebo si ich tu nulujem!!
-	//for (u8 i = 0; i < pocetDIN; i++)
-	//{
-	//		DIN[pocetDIN].counter = 0;
-	//	}
-	//}
+		zaznam.PosexTime = rtc.getEpoch();
+		zaznam.zaznamID = IDzaznamu_SCT_prud;
+		zaznam.pocetDat = 4;
+		loc_dataBuff[0]=34;
+		loc_dataBuff[1]=34;
+		loc_dataBuff[2]=34;
+		loc_dataBuff[3]=34;
+        zaznam.suma = VypocitajSumuBuffera(loc_dataBuff,zaznam.pocetDat);
+		LogBufferPocetZaznamov++;
+		LogBufferIndex += (zaznam.pocetDat + 7);
+		
+		sprava = "\r\n[10sek Loop]  Pridavam 10 sek zaznam, ";
+		char tt[100];
+		sprintf(tt, "pocet zaznamov: %u  a index v bufferi:%u\r\n", LogBufferPocetZaznamov, LogBufferIndex);
+		sprava += tt;
+		Serial.println(sprava);
+		//tu pred touto loop musis mat uz ulozene DIN.counters, lebo si ich tu nulujem!!
+		//for (u8 i = 0; i < pocetDIN; i++)
+		//{
+		//		DIN[pocetDIN].counter = 0;
+		//	}
+	}
 
 	//WiFi_connect_sequencer();
 }
