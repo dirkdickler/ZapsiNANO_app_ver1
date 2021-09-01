@@ -7,6 +7,10 @@
 #define TCP_10001_socket 3
 
 
+//Typy zaznamov zaznamov
+#define IDzaznamu_SCT_prud 1
+ 
+
 #define input1 0
 #define input2 1
 #define input3 2

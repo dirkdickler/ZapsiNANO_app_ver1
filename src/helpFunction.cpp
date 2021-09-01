@@ -180,7 +180,7 @@ u16 readADC_Avg(void)
 	static u32 AN_acuuVal;
 	static u8 AN_SCT_index = 0;
 	static u16 Predchozi = 0;
-    
+
 	AN_acuuVal += analogRead(ADC_curren_pin);
 	if (++AN_SCT_index == FILTER_LEN)
 	{
@@ -828,4 +828,30 @@ void TCP_debugMsg(String sprava)
 	sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
 	send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
 #endif
+}
+
+uint8_t VypocitajSumuBuffera(uint8_t *buffer, uint16_t kolko)
+{
+	uint8_t suma = 0;
+
+	for (uint16_t i = 0; i < kolko; i++)
+	{
+		suma += buffer[i];
+	}
+
+	suma = 255 - suma;
+	return suma;
+}
+
+uint8_t KontrolaSumyBuffera(uint8_t *buffer, uint16_t kolko)
+{
+	uint8_t suma = 0;
+	for (uint16_t i = 0; i < kolko; i++)
+	{
+		suma += buffer[i];
+	}
+
+	suma = 255 - suma;
+
+	return suma;
 }

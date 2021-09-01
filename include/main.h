@@ -39,17 +39,12 @@ typedef struct
 
 typedef struct
 {
-	char name[16];
-	i16 T_podlaha;
-	i16 T_vzduch;
-	i16 RH_vlhkkost;
-
-	i16 T_podlaha_SET;
-	i16 T_vzduch_SET;
-	i16 RH_vlhkkost_SET;
-	u8 teleso;
-	u8 RS485_timeout;
-} TERMOSTAT_t;
+	uint32_t PosexTime;
+	uint8_t  zaznamID;
+	uint8_t  pocetDat;
+	uint8_t  suma;
+	uint8_t* data;
+}ZAZNAM_t;
 
 //definovani ID  sprav
 #define MsgID_Ping 1
