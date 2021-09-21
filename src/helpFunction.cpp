@@ -548,11 +548,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 }
 
 void onEvent(AsyncWebSocket *server,
-			 AsyncWebSocketClient *client,
-			 AwsEventType type,
-			 void *arg,
-			 uint8_t *data,
-			 size_t len)
+				 AsyncWebSocketClient *client,
+				 AwsEventType type,
+				 void *arg,
+				 uint8_t *data,
+				 size_t len)
 {
 	switch (type)
 	{
@@ -594,7 +594,7 @@ void WiFi_init(void)
 	// Print ESP Local IP Address
 	Serial.println(WiFi.localIP());
 
-	ws.onEvent(onEvent);	//initWebSocket();
+	ws.onEvent(onEvent);		//initWebSocket();
 	server.addHandler(&ws); //initWebSocket();
 
 	FuncServer_On();
@@ -854,4 +854,49 @@ uint8_t KontrolaSumyBuffera(uint8_t *buffer, uint16_t kolko)
 	suma = 255 - suma;
 
 	return suma;
+}
+
+bool KontrolujBufferZdaObsaujeMAC(char JSONbuffer[])
+{
+	JSONVar myObject = JSON.parse(JSONbuffer);
+	{
+		if (JSON.typeof(myObject) != "undefined")
+		{
+			Serial.println("Parichozi JSON SOCKETU mau nejaku deinicu JSONu");
+			if (myObject.hasOwnProperty("MACadresa"))
+			{
+				Serial.print("myObject ma MAC adresu a to = ");
+				Serial.println((const char *)myObject["MACadresa"]);
+				String dddd;
+				dddd = myObject["MACadresa"];
+				char *argv[8];
+				int argc;
+				char str[50];
+				dddd.toCharArray(str, sizeof(str), 0);
+				split(argv, &argc, str, ':', 0);
+
+				Serial.println("-------Toto  su cleny MAC adrese--------\n");
+				char pole[50];
+				for (int i = 0; i < argc; i++)
+				{
+					sprintf(pole, "argv[%d] = %s", i, argv[i]);
+					Serial.println(pole);
+					sprintf(pole, "prevedene na int [%d] -", atoi(argv[i]));
+					Serial.println(pole);
+				}
+				Serial.println("-------------------------\n");
+
+				if (eth.mac[0] == atoi(argv[0]) &&
+					 eth.mac[1] == atoi(argv[1]) &&
+					 eth.mac[2] == atoi(argv[2]) &&
+					 eth.mac[3] == atoi(argv[3]) &&
+					 eth.mac[4] == atoi(argv[4]) &&
+					 eth.mac[5] == atoi(argv[5]))
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }

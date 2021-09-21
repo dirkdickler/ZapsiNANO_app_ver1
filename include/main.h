@@ -46,6 +46,7 @@ typedef struct
 	uint8_t* data;
 }ZAZNAM_t;
 
+
 //definovani ID  sprav
 #define MsgID_Ping 1
 #define MsgID_BusMute 2
