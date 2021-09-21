@@ -294,6 +294,7 @@ int8_t connect(uint8_t sn, uint8_t* addr, uint16_t port)
     return SOCK_OK;
 }
 
+//toto odpoji spojenie, ale ak ho zavolas, ked nemas spojenie, tak tuhac a potom WDT reset 
 int8_t disconnect(uint8_t sn)
 {
     CHECK_SOCKNUM();
