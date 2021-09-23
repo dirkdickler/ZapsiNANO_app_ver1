@@ -3,6 +3,9 @@
 
 #include <Arduino.h>
 
+#define ComDebug(x) Serial.print(x);
+#define ComDebugln(x) Serial.println(x);
+
 char **split(char **argv, int *argc, char *string, const char delimiter, int allowempty);
 
 String ConvetWeekDay_UStoCZ(tm *timeInfoPRT);
@@ -37,6 +40,7 @@ void TCP_debugMsg(String sprava);
 u16 readADC_Avg(void);
 uint8_t VypocitajSumuBuffera(uint8_t *buffer, uint16_t kolko);
 uint8_t KontrolaSumyBuffera(uint8_t *buffer, uint16_t kolko);
+<<<<<<< HEAD
 bool KontrolujBufferZdaObsaujeMAC(char JSONbuffer[]);
 uint16_t Read_u16_Value(char *buff);
 uint32_t Read_u32_Value(char *buff);
@@ -45,4 +49,7 @@ void Read_u64_Value(char *buff, char *data);
 float Read_Float_Value(char *buff);
 void float2Bytes(float val, uint8_t *bytes_array);
 void Double2Bytes(double val, uint8_t *bytes_array);
+=======
+bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[]);
+>>>>>>> dbd354cc99ae22db65ca7b97644979bc409df432
 #endif

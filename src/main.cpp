@@ -235,7 +235,7 @@ void Loop_100ms(void)
 
 void Loop_1sek(void)
 {
-	Serial.print("[1sek Loop]  mam 1 sek....  ");
+	//ComDebug("[1sek Loop]  mam 1 sek....  ");
 	String sprava = rtc.getTime("\r\n[%H:%M:%S] karta ");
 	if (digitalRead(SD_CD_pin) == LOW)
 	{
@@ -257,14 +257,14 @@ void Loop_1sek(void)
 
 	if (Internet_CasDostupny == false)
 	{
-		Serial.print("Internet cas nedostupny !!,  ");
+		//ComDebug("Internet cas nedostupny !!,  ");
 	}
 	else
 	{
-		Serial.print("Internet cas dostupny,  ");
+		//ComDebug("Internet cas dostupny,  ");
 	}
-	Serial.print("RTC cas cez func rtc.getTime: ");
-	Serial.println(rtc.getTime("%A, %B %d %Y %H:%M:%S"));
+	//ComDebug("RTC cas cez func rtc.getTime: ");
+	//ComDebugln(rtc.getTime("%A, %B %d %Y %H:%M:%S"));
 	MyRTC_cas = rtc.getTimeStruct();
 	//Serial.print("[1sek Loop]  free Heap je:");
 	//Serial.println(ESP.getFreeHeap());
@@ -273,7 +273,9 @@ void Loop_1sek(void)
 	{
 		if (--myTimer.socketCloseTimeout == 0)
 		{
-			//tuu zatvor ZapsiSocket lebo utikol cas
+			ComDebugln("[1sek Loop] Zaviram socket len cas uplynul");
+			//disconnect(TCP_10001_socket);
+			closeSocket(TCP_10001_socket);
 		}
 	}
 }
@@ -289,9 +291,14 @@ void Loop_10sek(void)
 	//TODOtu si teraz spra ukaldanie analogu a digital cnt na do RAM or do SD karty
 	{
 		u8 loc_dataBuff[32];
+<<<<<<< HEAD
 		float testVal = 23.567f;
 		float2Bytes(testVal, loc_dataBuff);
 		zaznam.PosexTime = rtc.getEpoch();
+=======
+
+		zaznam.PosixTime = rtc.getEpoch();
+>>>>>>> dbd354cc99ae22db65ca7b97644979bc409df432
 		zaznam.zaznamID = IDzaznamu_SCT_prud;
 		zaznam.pocetDat = 4;
 		zaznam.suma = VypocitajSumuBuffera(loc_dataBuff, zaznam.pocetDat);
@@ -308,6 +315,17 @@ void Loop_10sek(void)
 		//{
 		//		DIN[pocetDIN].counter = 0;
 		//	}
+		//{"Time":"2021:9:22:12:22:33:156","AI1":"23.4"}
+		JSONVar tempObject; 
+		tempObject["Time"] = "2021:9:22:12:22:33:156"; 
+		tempObject["AI1"] = "23.4"; 
+		sprava = JSON.stringify(tempObject);
+		ComDebugln("Idem poslat hlasku 10 sek An1");
+		ComDebugln(sprava);
+        sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
+	    i32 ret = send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
+		ComDebugln("TCP odoslalo bytes:");
+		ComDebugln(ret);
 	}
 
 	//WiFi_connect_sequencer();
@@ -501,9 +519,11 @@ void TCP_handler(uint8_t s, uint16_t port)
 	switch (getSn_SR(s))
 	{
 	case SOCK_ESTABLISHED: /* if connection is established */
-		if (getSn_IR(s) & Sn_IR_CON)
+		if (getSn_IR(s) & Sn_IR_CON) //toto sa vykona len raz ak zaloziz spojenie
 		{
 			setSn_IR(s, Sn_IR_CON);
+			ComDebugln("spojenie zalozene")
+			myTimer.socketCloseTimeout = 5;
 		}
 		if ((size = getSn_RX_RSR(s)) > 0) // Don't need to check SOCKERR_BUSY because it doesn't not occur.
 		{
@@ -517,10 +537,9 @@ void TCP_handler(uint8_t s, uint16_t port)
 			size = (uint16_t)ret;
 			sentsize = 0;
 
-			if (KontrolujBufferZdaObsaujeMAC(ethBuff) == true)
+			if (KontrolujBufferZdaObsaujeJSONdata(ethBuff) == true)
 			{
-				Serial.println("Super JSON sa rovna mojej MAC adrese");
-				myTimer.socketCloseTimeout = 0; // //tu je akoze dosiel JSON string kde je MAC
+				return;
 			}
 
 			if (strncmp((const char *)ethBuff, "GET", 3) == 0) // && timers.GET_request_timeout == 0 )
@@ -546,13 +565,15 @@ void TCP_handler(uint8_t s, uint16_t port)
 		break;
 
 	case SOCK_CLOSED:
-		if ((ret = socket(s, Sn_MR_TCP, port, 0x00)) != s) //if(socket(s,Sn_MR_TCP,port,0x00) == 0)    /* reinitialize the socket */
+		if ((ret = socket(s, Sn_MR_TCP, port, 0x00)) != s) 
 		{
+			ComDebugln("[SOCK_CLOSED] sequencer");
 		}
 		break;
 
-	case SOCK_INIT: /* if a socket is initiated */
+	case SOCK_INIT: // toto sa vykona od sa close socket a reinicializu, vykona sa to len raz a potom uz len pocuva
 		listen(s);
+		//ComDebugln("[SOCK_INIT] sequencer");
 		break;
 
 	default:

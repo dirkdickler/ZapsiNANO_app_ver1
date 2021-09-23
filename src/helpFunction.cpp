@@ -12,6 +12,7 @@
 #include "WizChip_my_API.h"
 #include "Middleware\Ethernet\wizchip_conf.h"
 #include "index.html"
+#include "HelpFunction.h"
 
 //toto spituje retezec napr cas  21:56, ti rozdeli podla delimetru ":"
 char **split(char **argv, int *argc, char *string, const char delimiter, int allowempty)
@@ -548,11 +549,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 }
 
 void onEvent(AsyncWebSocket *server,
-				 AsyncWebSocketClient *client,
-				 AwsEventType type,
-				 void *arg,
-				 uint8_t *data,
-				 size_t len)
+			 AsyncWebSocketClient *client,
+			 AwsEventType type,
+			 void *arg,
+			 uint8_t *data,
+			 size_t len)
 {
 	switch (type)
 	{
@@ -594,7 +595,7 @@ void WiFi_init(void)
 	// Print ESP Local IP Address
 	Serial.println(WiFi.localIP());
 
-	ws.onEvent(onEvent);		//initWebSocket();
+	ws.onEvent(onEvent);	//initWebSocket();
 	server.addHandler(&ws); //initWebSocket();
 
 	FuncServer_On();
@@ -856,7 +857,7 @@ uint8_t KontrolaSumyBuffera(uint8_t *buffer, uint16_t kolko)
 	return suma;
 }
 
-bool KontrolujBufferZdaObsaujeMAC(char JSONbuffer[])
+bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 {
 	JSONVar myObject = JSON.parse(JSONbuffer);
 	{
@@ -865,8 +866,8 @@ bool KontrolujBufferZdaObsaujeMAC(char JSONbuffer[])
 			Serial.println("Parichozi JSON SOCKETU mau nejaku deinicu JSONu");
 			if (myObject.hasOwnProperty("MACadresa"))
 			{
-				Serial.print("myObject ma MAC adresu a to = ");
-				Serial.println((const char *)myObject["MACadresa"]);
+				//ComDebug("myObject ma MAC adresu a to = ");
+				//ComDebugln((const char *)myObject["MACadresa"]);
 				String dddd;
 				dddd = myObject["MACadresa"];
 				char *argv[8];
@@ -875,27 +876,80 @@ bool KontrolujBufferZdaObsaujeMAC(char JSONbuffer[])
 				dddd.toCharArray(str, sizeof(str), 0);
 				split(argv, &argc, str, ':', 0);
 
-				Serial.println("-------Toto  su cleny MAC adrese--------\n");
+				//ComDebugln("-------Toto  su cleny MAC adrese--------\n");
 				char pole[50];
 				for (int i = 0; i < argc; i++)
 				{
 					sprintf(pole, "argv[%d] = %s", i, argv[i]);
-					Serial.println(pole);
-					sprintf(pole, "prevedene na int [%d] -", atoi(argv[i]));
-					Serial.println(pole);
+					//ComDebugln(pole);
+					sprintf(pole, "prevedene na int [%d] -", strtol(argv[i], NULL, 16));
+					//ComDebugln(pole);
 				}
-				Serial.println("-------------------------\n");
+				//ComDebugln("-------------------------\n");
 
-				if (eth.mac[0] == atoi(argv[0]) &&
-					 eth.mac[1] == atoi(argv[1]) &&
-					 eth.mac[2] == atoi(argv[2]) &&
-					 eth.mac[3] == atoi(argv[3]) &&
-					 eth.mac[4] == atoi(argv[4]) &&
-					 eth.mac[5] == atoi(argv[5]))
+				if (eth.mac[0] == strtol(argv[0], NULL, 16) &&
+					eth.mac[1] == strtol(argv[1], NULL, 16) &&
+					eth.mac[2] == strtol(argv[2], NULL, 16) &&
+					eth.mac[3] == strtol(argv[3], NULL, 16) &&
+					eth.mac[4] == strtol(argv[4], NULL, 16) &&
+					eth.mac[5] == strtol(argv[5], NULL, 16))
 				{
+					ComDebugln("Super JSON sa rovna mojej MAC adrese");
+					myTimer.socketCloseTimeout = 0; // tu je akoze dosiel JSON string kde je MAC
 					return true;
 				}
 			}
+			else if (myObject.hasOwnProperty("Cas"))
+			{
+				ComDebug("myObject ma CAS JSON");
+				ComDebugln((const char *)myObject["Cas"]);
+				String dddd;
+				dddd = myObject["Cas"];
+				char *argv[10];
+				int argc;
+				char str[50];
+				dddd.toCharArray(str, sizeof(str), 0);
+				split(argv, &argc, str, ':', 0);
+
+				ComDebugln("-------Toto  su cleny Casu--------\n");
+				char pole[50];
+				for (int i = 0; i < argc; i++)
+				{
+					sprintf(pole, "argv[%d] = %s", i, argv[i]);
+					ComDebugln(pole);
+					sprintf(pole, "prevedene na int [%d] -", atoi(argv[i]));
+					ComDebugln(pole);
+				}
+				ComDebugln("-------------------------\n");
+				
+				//setTime(int sc, int mn, int hr, int dy, int mt, int yr, int ms)
+				int sc, mn, hr, dy, mt, yr;
+				sc = atoi(argv[5]);
+				mn = atoi(argv[4]);
+				hr = atoi(argv[3]);
+				dy = atoi(argv[2]);
+				mt = atoi(argv[1]);
+				yr = atoi(argv[0]);
+				if ((sc < 60 && sc > -1) &&
+					(mn > -1 && mn < 60) &&
+					(hr > -1 && hr < 24) &&
+					(dy > 0 && dy < 32) &&
+					(mt > 0 && mt < 13) &&
+					(yr > 2000 && yr < 2500))
+				{
+					//TODO tu mas uz rozparsrovany RTC, tak si ho uloz kam potrebujes do ESP casu, or do I2C RTC modulu
+					rtc.setTime(sc, mn, hr, dy, mt, yr, 0);
+				}
+				else
+				{
+					ComDebugln("Error zadal si spatny ca s RTC");
+				}
+				return true;
+			}
+		}
+		else
+		{
+			ComDebug("Buffer nema JSON paket");
 		}
 	}
 	return false;

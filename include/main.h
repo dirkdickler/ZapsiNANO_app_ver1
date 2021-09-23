@@ -39,7 +39,7 @@ typedef struct
 
 typedef struct
 {
-	uint32_t PosexTime;
+	uint32_t PosixTime;
 	uint8_t  zaznamID;
 	uint8_t  pocetDat;
 	uint8_t  suma;
