@@ -289,14 +289,11 @@ void Loop_10sek(void)
 	//TODOtu si teraz spra ukaldanie analogu a digital cnt na do RAM or do SD karty
 	{
 		u8 loc_dataBuff[32];
-
+		float testVal = 23.567f;
+		float2Bytes(testVal, loc_dataBuff);
 		zaznam.PosexTime = rtc.getEpoch();
 		zaznam.zaznamID = IDzaznamu_SCT_prud;
 		zaznam.pocetDat = 4;
-		loc_dataBuff[0] = 34;
-		loc_dataBuff[1] = 34;
-		loc_dataBuff[2] = 34;
-		loc_dataBuff[3] = 34;
 		zaznam.suma = VypocitajSumuBuffera(loc_dataBuff, zaznam.pocetDat);
 		LogBufferPocetZaznamov++;
 		LogBufferIndex += (zaznam.pocetDat + 7);

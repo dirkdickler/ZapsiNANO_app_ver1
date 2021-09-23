@@ -900,3 +900,101 @@ bool KontrolujBufferZdaObsaujeMAC(char JSONbuffer[])
 	}
 	return false;
 }
+
+uint16_t Read_u16_Value(char *buff)
+{
+	uint16_t *ptr = (uint16_t *)buff;
+	return *ptr;
+	/*char *ptr;
+	ptr = buff+1;
+	uint16_t loc_hodnota;
+	loc_hodnota  = *ptr; ptr--;
+	loc_hodnota <<= 8;
+	loc_hodnota += *ptr;
+	return loc_hodnota;*/
+}
+
+uint32_t Read_u32_Value(char *buff)
+{
+	uint32_t *ptr = (uint32_t *)buff;
+	return *ptr;
+	/*char *ptr;
+	ptr = buff;
+	ptr += 3;
+	uint32_t loc_hodnota;
+	loc_hodnota  = *ptr;  loc_hodnota <<= 8; ptr--;
+	loc_hodnota  += *ptr; loc_hodnota <<= 8; ptr--;
+	loc_hodnota  += *ptr; loc_hodnota <<= 8; ptr--;
+	loc_hodnota += *ptr;
+	return loc_hodnota;*/
+}
+
+int32_t Read_32_Value(char *buff)
+{
+	int32_t *ptr = (int32_t *)buff;
+	return *ptr;
+}
+void Read_u64_Value(char *buff, char *data)
+{
+	memcpy(data, buff, sizeof(uint64_t));
+
+	/*uint32_t *ptr = (uint32_t *)buff;
+	uint32_t *ptr2 = (uint32_t *)buff+4;
+	uint64_t k = ((uint64_t)(*ptr2))<<32;
+	k|= ((uint64_t)(*ptr));
+	return k;*/
+	//uint64_t *ptr = (uint64_t *)buff; //TODO nejede pri RELEASE compilaci "vytuhne
+	//return *ptr;
+}
+
+float Read_Float_Value(char *buff)
+{
+	float *ptr = (float *)buff;
+	return *ptr;
+}
+
+void float2Bytes(float val, uint8_t *bytes_array)
+{
+
+	uint8_t loc_buff[4];
+	// Create union of shared memory space
+	union
+	{
+		float float_variable;
+		uint8_t temp_array[4];
+	} u;
+	// Overite bytes of union with float variable
+	u.float_variable = val;
+	// Assign bytes to input array
+	memcpy(loc_buff, u.temp_array, 4);
+
+	bytes_array[3] = loc_buff[0];
+	bytes_array[2] = loc_buff[1];
+	bytes_array[1] = loc_buff[2];
+	bytes_array[0] = loc_buff[3];
+}
+
+void Double2Bytes(double val, uint8_t *bytes_array)
+{
+
+	uint8_t loc_buff[8];
+	// Create union of shared memory space
+	union
+	{
+		double float_variable;
+		uint8_t temp_array[8];
+	} u;
+	// Overite bytes of union with float variable
+	u.float_variable = val;
+	// Assign bytes to input array
+	memcpy(loc_buff, u.temp_array, 8);
+
+	bytes_array[7] = loc_buff[0];
+	bytes_array[6] = loc_buff[1];
+	bytes_array[5] = loc_buff[2];
+	bytes_array[4] = loc_buff[3];
+	bytes_array[3] = loc_buff[4];
+	bytes_array[2] = loc_buff[5];
+	bytes_array[1] = loc_buff[6];
+	bytes_array[0] = loc_buff[7];
+}
