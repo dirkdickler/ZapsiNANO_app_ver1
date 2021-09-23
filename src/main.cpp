@@ -292,7 +292,7 @@ void Loop_10sek(void)
 	{
 		u8 loc_dataBuff[32];
 
-		zaznam.PosexTime = rtc.getEpoch();
+		zaznam.PosixTime = rtc.getEpoch();
 		zaznam.zaznamID = IDzaznamu_SCT_prud;
 		zaznam.pocetDat = 4;
 		loc_dataBuff[0] = 34;
