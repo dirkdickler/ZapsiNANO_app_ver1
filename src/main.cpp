@@ -304,21 +304,21 @@ void Loop_10sek(void)
 		char tt[100];
 		sprintf(tt, "pocet zaznamov: %u  a index v bufferi:%u\r\n", LogBufferPocetZaznamov, LogBufferIndex);
 		sprava += tt;
-		Serial.println(sprava);
+		ComDebugln(sprava);
 		//tu pred touto loop musis mat uz ulozene DIN.counters, lebo si ich tu nulujem!!
 		//for (u8 i = 0; i < pocetDIN; i++)
 		//{
 		//		DIN[pocetDIN].counter = 0;
 		//	}
 		//{"Time":"2021:9:22:12:22:33:156","AI1":"23.4"}
-		JSONVar tempObject; 
-		tempObject["Time"] = "2021:9:22:12:22:33:156"; 
-		tempObject["AI1"] = "23.4"; 
+		JSONVar tempObject;
+		tempObject["Time"] = "2021:9:22:12:22:33:156";
+		tempObject["AI1"] = "23.4";
 		sprava = JSON.stringify(tempObject);
 		ComDebugln("Idem poslat hlasku 10 sek An1");
 		ComDebugln(sprava);
-        sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
-	    i32 ret = send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
+		sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
+		i32 ret = send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
 		ComDebugln("TCP odoslalo bytes:");
 		ComDebugln(ret);
 	}
@@ -513,12 +513,19 @@ void TCP_handler(uint8_t s, uint16_t port)
 	uint16_t size = 0, sentsize = 0;
 	switch (getSn_SR(s))
 	{
-	case SOCK_ESTABLISHED: /* if connection is established */
+	case SOCK_ESTABLISHED:			  /* if connection is established */
 		if (getSn_IR(s) & Sn_IR_CON) //toto sa vykona len raz ak zaloziz spojenie
 		{
 			setSn_IR(s, Sn_IR_CON);
-			ComDebugln("spojenie zalozene")
+			ComDebugln("spojenie zalozene");
+
 			myTimer.socketCloseTimeout = 5;
+			if (LogBufferPocetZaznamov)
+			{
+				char tt[100];
+				sprintf(tt, "Pozor v bufferi mam %u  zaznamov, musim ich poslat server a index v bufferi:%u\r\n", LogBufferPocetZaznamov, LogBufferIndex);
+				ComDebugln(tt);
+			}
 		}
 		if ((size = getSn_RX_RSR(s)) > 0) // Don't need to check SOCKERR_BUSY because it doesn't not occur.
 		{
@@ -560,7 +567,7 @@ void TCP_handler(uint8_t s, uint16_t port)
 		break;
 
 	case SOCK_CLOSED:
-		if ((ret = socket(s, Sn_MR_TCP, port, 0x00)) != s) 
+		if ((ret = socket(s, Sn_MR_TCP, port, 0x00)) != s)
 		{
 			ComDebugln("[SOCK_CLOSED] sequencer");
 		}
