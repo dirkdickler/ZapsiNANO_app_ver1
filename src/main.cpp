@@ -319,8 +319,19 @@ void Loop_10sek(void)
 		ComDebugln(sprava);
 		sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
 		i32 ret = send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
+		ComDebugln("Do  TCP soketu sa malo poslat  bytes:");
 		ComDebugln("TCP odoslalo bytes:");
-		ComDebugln(ret);
+		if (ret == strlen(TX_BUF))
+		{
+			ComDebugln("Odoslanie dat do TCP socketu bolo OK a to bytes:");
+			ComDebugln("TCP odoslalo bytes:");
+		}
+		else
+		{
+			ComDebugln("TCP odoslalo NOK!!!  odoslalo sa len bytes:");
+			ComDebugln(ret);
+			ComDebugln("Takze to znamene ze nemam spojenia ulozim to do buffer");
+		}
 	}
 
 	//WiFi_connect_sequencer();
