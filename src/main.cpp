@@ -10,6 +10,7 @@
 #include "time.h"
 #include <Ticker.h>
 #include <EEPROM.h>
+#include <TimeLib.h>
 #include "index.html"
 #include "main.h"
 #include "define.h"
@@ -63,35 +64,32 @@ IPAddress primaryDNS(8, 8, 8, 8);	//optional
 IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
 const char *ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 0;		 //3600;
+const long gmtOffset_sec = 0;	  //3600;
 const int daylightOffset_sec = 0; //3600; //letny cas
 struct tm MyRTC_cas;
 bool Internet_CasDostupny = false; //to je ze dostava cas z Inernetu
-bool RTC_cas_OK = false;			  //ze mam RTC fakt nastaveny bud z interneru, alebo nastaveny manualne
-											  //a to teda ze v RTC mam fakr realny cas
-											  //Tento FLAG, nastavi len pri nacitanie casu z internutu, alebo do buducna manualne nastavenie casu cew WEB
+bool RTC_cas_OK = false;		   //ze mam RTC fakt nastaveny bud z interneru, alebo nastaveny manualne
+								   //a to teda ze v RTC mam fakr realny cas
+								   //Tento FLAG, nastavi len pri nacitanie casu z internutu, alebo do buducna manualne nastavenie casu cew WEB
 
 u16_t SCT_prud_0 = 0;
 
 char gloBuff[200];
 bool LogEnebleWebPage = false;
 
-static u8 LogBuffer[8192];
-static u16 LogBufferPocetZaznamov = 0;
-static u16 LogBufferIndex = 0;
-static ZAZNAM_t zaznam;
+LOGBUFF_t LogBuffer;
 
 VSTUP_t DIN[pocetDIN_celkovo];
 char TX_BUF[TX_RX_MAX_BUF_SIZE];
 //------------------------------------------------------------------------------------------------------------------
 wiz_NetInfo eth =
-	 {
-		  .mac = {0x80, 0x1F, 0x12, 0x56, 0xC7, 0xC9},
-		  .ip = {192, 168, 1, 10},
-		  .sn = {255, 255, 255, 0},
-		  .gw = {192, 168, 1, 1},
-		  .dns = {8, 8, 8, 8},
-		  .dhcp = NETINFO_DHCP};
+	{
+		.mac = {0x80, 0x1F, 0x12, 0x56, 0xC7, 0xC9},
+		.ip = {192, 168, 1, 10},
+		.sn = {255, 255, 255, 0},
+		.gw = {192, 168, 1, 1},
+		.dns = {8, 8, 8, 8},
+		.dhcp = NETINFO_DHCP};
 
 /**********************************************************
  ***************        SETUP         **************
@@ -139,7 +137,7 @@ void setup()
 	timer_1sek.start();
 	timer_10sek.start();
 	esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
-	esp_task_wdt_add(NULL);					  //add current thread to WDT watch
+	esp_task_wdt_add(NULL);				  //add current thread to WDT watch
 
 	//RS485 musis spustit az tu, lebo ak ju das hore a ESP ceka na konnect wifi, a pridu nejake data na RS485, tak FreeRTOS =RESET  asi overflow;
 	//Serial1.begin(9600);
@@ -171,7 +169,7 @@ void Loop_10ms()
 {
 	static uint8_t TimeOut_RXdata = 0;	 //musi byt static lebo sem skaces z Loop
 	static uint16_t KolkkoNplnenych = 0; //musi byt static lebo sem skaces z Loop
-	static char budd[250];					 //musi byt static lebo sem skaces z Loop
+	static char budd[250];				 //musi byt static lebo sem skaces z Loop
 
 	uint16_t aktualny;
 	char temp[200];
@@ -290,21 +288,6 @@ void Loop_10sek(void)
 
 	//TODOtu si teraz spra ukaldanie analogu a digital cnt na do RAM or do SD karty
 	{
-		u8 loc_dataBuff[32];
-		float testVal = 23.567f;
-		float2Bytes(testVal, loc_dataBuff);
-		zaznam.PosixTime = rtc.getEpoch();
-		zaznam.zaznamID = IDzaznamu_SCT_prud;
-		zaznam.pocetDat = 4;
-		zaznam.suma = VypocitajSumuBuffera(loc_dataBuff, zaznam.pocetDat);
-		LogBufferPocetZaznamov++;
-		LogBufferIndex += (zaznam.pocetDat + 7);
-
-		sprava = "\r\n[10sek Loop]  Pridavam 10 sek zaznam, ";
-		char tt[100];
-		sprintf(tt, "pocet zaznamov: %u  a index v bufferi:%u\r\n", LogBufferPocetZaznamov, LogBufferIndex);
-		sprava += tt;
-		ComDebugln(sprava);
 		//tu pred touto loop musis mat uz ulozene DIN.counters, lebo si ich tu nulujem!!
 		//for (u8 i = 0; i < pocetDIN; i++)
 		//{
@@ -319,18 +302,35 @@ void Loop_10sek(void)
 		ComDebugln(sprava);
 		sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
 		i32 ret = send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
-		ComDebugln("Do  TCP soketu sa malo poslat  bytes:");
-		ComDebugln("TCP odoslalo bytes:");
+		ComDebug("Do  TCP soketu sa malo poslat  bytes:");
+		ComDebugln(strlen(TX_BUF));
 		if (ret == strlen(TX_BUF))
 		{
-			ComDebugln("Odoslanie dat do TCP socketu bolo OK a to bytes:");
-			ComDebugln("TCP odoslalo bytes:");
+			ComDebug("Odoslanie dat do TCP socketu bolo OK a to bytes:");
+			ComDebugln(ret);
 		}
 		else
 		{
-			ComDebugln("TCP odoslalo NOK!!!  odoslalo sa len bytes:");
+			ComDebug("TCP odoslalo NOK!!!  odoslalo sa len bytes:");
 			ComDebugln(ret);
 			ComDebugln("Takze to znamene ze nemam spojenia ulozim to do buffer");
+
+			u8 loc_dataBuff[32];
+			float testVal = 23.456f;
+			float testVal2 = 34.567f;
+       
+			ComDebug("RTC cas cez func rtc.getTime: ");
+			ComDebugln(rtc.getTime("%A, %B %d %Y %H:%M:%S"));
+			LogBuffer.zaznam.PosixTime = rtc.getEpoch();
+			LogBuffer.zaznam.zaznamID = IDzaznamu_SCT_prud;
+			float2Bytes(testVal, &LogBuffer.zaznam.data[0]);
+			float2Bytes(testVal2, &LogBuffer.zaznam.data[4]);
+			LogBuffer.zaznam.pocetDat = 8;
+			if (UlozZaznamDoBuffera(&LogBuffer) == false)
+			{
+				ComDebugln("!!pozor funkcia UlozZaznamDoBuffera vratila FALSE, plny buff or pocet zaznamu ");
+			};
+			VyberZaznamBuffera(&sprava, &LogBuffer);
 		}
 	}
 
@@ -367,104 +367,104 @@ void DebugMsgToWebSocket(String textik)
 void FuncServer_On(void)
 {
 	server.on("/",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 //if (!request->authenticate("ahoj", "xxxx"))
-					 //return request->requestAuthentication();
-					 //request->send_P(200, "text/html", index_html, processor);
-					 request->send_P(200, "text/html", Main);
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  //if (!request->authenticate("ahoj", "xxxx"))
+				  //return request->requestAuthentication();
+				  //request->send_P(200, "text/html", index_html, processor);
+				  request->send_P(200, "text/html", Main);
+			  });
 
 	server.on("/nastavip",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 if (!request->authenticate("admin", "adum"))
-						 return request->requestAuthentication();
-					 request->send(200, "text/html", handle_Zadavanie_IP_setting());
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  if (!request->authenticate("admin", "adum"))
+					  return request->requestAuthentication();
+				  request->send(200, "text/html", handle_Zadavanie_IP_setting());
+			  });
 
 	server.on("/Nastaveni",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 handle_Nastaveni(request);
-					 request->send(200, "text/html", "Nastavujem a ukladam do EEPROM");
-					 Serial.println("Idem resetovat ESP");
-					 delay(2000);
-					 esp_restart();
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  handle_Nastaveni(request);
+				  request->send(200, "text/html", "Nastavujem a ukladam do EEPROM");
+				  Serial.println("Idem resetovat ESP");
+				  delay(2000);
+				  esp_restart();
+			  });
 
 	server.on("/status", HTTP_GET, [](AsyncWebServerRequest *request)
-				 {
-					 char ttt[500];
-					 //u16_t citac = EEPROM.readUShort (EE_citacZapisuDoEEPORM);
-					 //u16_t citac2 = EEPROM.readUShort (EE_citac2_ZapisuDoEEPORM);
+			  {
+				  char ttt[500];
+				  //u16_t citac = EEPROM.readUShort (EE_citacZapisuDoEEPORM);
+				  //u16_t citac2 = EEPROM.readUShort (EE_citac2_ZapisuDoEEPORM);
 
-					 char loc_buf[20];
-					 char loc_buf1[60];
-					 char loc_buf2[100];
-					 if (Internet_CasDostupny == true)
-					 {
-						 sprintf(loc_buf, "dostupny :-)");
-					 }
-					 else
-					 {
-						 sprintf(loc_buf, "nedostupny!!");
-					 }
+				  char loc_buf[20];
+				  char loc_buf1[60];
+				  char loc_buf2[100];
+				  if (Internet_CasDostupny == true)
+				  {
+					  sprintf(loc_buf, "dostupny :-)");
+				  }
+				  else
+				  {
+					  sprintf(loc_buf, "nedostupny!!");
+				  }
 
-					 if (RTC_cas_OK == false)
-					 {
-						 sprintf(loc_buf2, "[RTC_cas_OK == flase] RTC NE-maju realny cas!!. RTC hodnota: ");
-					 }
-					 else
-					 {
-						 sprintf(loc_buf2, "[RTC_cas_OK == true] RTC hodnota: ");
-					 }
-					 strftime(loc_buf1, sizeof(loc_buf1), " %H:%M:%S    %d.%m.%Y    ", &MyRTC_cas);
+				  if (RTC_cas_OK == false)
+				  {
+					  sprintf(loc_buf2, "[RTC_cas_OK == flase] RTC NE-maju realny cas!!. RTC hodnota: ");
+				  }
+				  else
+				  {
+					  sprintf(loc_buf2, "[RTC_cas_OK == true] RTC hodnota: ");
+				  }
+				  strftime(loc_buf1, sizeof(loc_buf1), " %H:%M:%S    %d.%m.%Y    ", &MyRTC_cas);
 
-					 sprintf(ttt, "Firmware :%s<br>"
-									  "Sila signalu WIFI(-30 je akoze OK):%i<br>"
-									  "Internet cas: %s<br>"
-									  "%s %s",
-								firmware, WiFi.RSSI(), loc_buf, loc_buf2, loc_buf1);
+				  sprintf(ttt, "Firmware :%s<br>"
+							   "Sila signalu WIFI(-30 je akoze OK):%i<br>"
+							   "Internet cas: %s<br>"
+							   "%s %s",
+						  firmware, WiFi.RSSI(), loc_buf, loc_buf2, loc_buf1);
 
-					 request->send(200, "text/html", ttt);
-				 });
+				  request->send(200, "text/html", ttt);
+			  });
 
 	server.on("/reset",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 if (!request->authenticate("admin", "radecek78"))
-						 return request->requestAuthentication();
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  if (!request->authenticate("admin", "radecek78"))
+					  return request->requestAuthentication();
 
-					 request->send(200, "text/html", "resetujem!!!");
-					 delay(1000);
-					 esp_restart();
-				 });
+				  request->send(200, "text/html", "resetujem!!!");
+				  delay(1000);
+				  esp_restart();
+			  });
 
 	server.on("/vytapeni",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 request->send_P(200, "text/html", vytapeni);
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  request->send_P(200, "text/html", vytapeni);
+			  });
 
 	server.on("/zaluzie_Main",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 request->send_P(200, "text/html", zaluzie_Main);
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  request->send_P(200, "text/html", zaluzie_Main);
+			  });
 	server.on("/debug",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 LogEnebleWebPage = true;
-					 request->send_P(200, "text/html", DebugLog_html);
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  LogEnebleWebPage = true;
+				  request->send_P(200, "text/html", DebugLog_html);
+			  });
 }
 
 //***********************************************  Hepl function ********************************************/
@@ -478,13 +478,13 @@ void ESPinfo(void)
 	Serial.println(WiFi.macAddress());
 	Serial.println("\r\nHardware info");
 	Serial.printf("%d cores Wifi %s%s\n",
-					  chip_info.cores,
-					  (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
-					  (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
+				  chip_info.cores,
+				  (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
+				  (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
 	Serial.printf("\r\nSilicon revision: %d\r\n ", chip_info.revision);
 	Serial.printf("%dMB %s flash\r\n",
-					  spi_flash_get_chip_size() / (1024 * 1024),
-					  (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embeded" : "external");
+				  spi_flash_get_chip_size() / (1024 * 1024),
+				  (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embeded" : "external");
 
 	Serial.printf("\r\nTotal heap: %d\r\n", ESP.getHeapSize());
 	Serial.printf("Free heap: %d\r\n", ESP.getFreeHeap());
@@ -524,17 +524,17 @@ void TCP_handler(uint8_t s, uint16_t port)
 	uint16_t size = 0, sentsize = 0;
 	switch (getSn_SR(s))
 	{
-	case SOCK_ESTABLISHED:			  /* if connection is established */
+	case SOCK_ESTABLISHED:			 /* if connection is established */
 		if (getSn_IR(s) & Sn_IR_CON) //toto sa vykona len raz ak zaloziz spojenie
 		{
 			setSn_IR(s, Sn_IR_CON);
 			ComDebugln("spojenie zalozene");
 
 			myTimer.socketCloseTimeout = 5;
-			if (LogBufferPocetZaznamov)
+			if (LogBuffer.PocetZaznamov)
 			{
 				char tt[100];
-				sprintf(tt, "Pozor v bufferi mam %u  zaznamov, musim ich poslat server a index v bufferi:%u\r\n", LogBufferPocetZaznamov, LogBufferIndex);
+				sprintf(tt, "Pozor v bufferi mam %u  zaznamov, musim ich poslat server a index v bufferi:%u\r\n", LogBuffer.PocetZaznamov, LogBuffer.BufferIndex);
 				ComDebugln(tt);
 			}
 		}

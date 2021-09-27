@@ -4,6 +4,7 @@
 #include <Hash.h>
 
 #include <Arduino_JSON.h>
+#include <TimeLib.h>
 #include "SD.h"
 #include <EEPROM.h>
 #include "main.h" //kvolu u8,u16..
@@ -901,6 +902,9 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 			}
 			else if (myObject.hasOwnProperty("Cas"))
 			{
+				// Ked v JSON dosje "Cas", takto beru ze na druhej strane je opravneny server a mazy flag vynuteneho Close soketu
+				myTimer.socketCloseTimeout = 0;
+
 				ComDebug("myObject ma CAS JSON");
 				ComDebugln((const char *)myObject["Cas"]);
 				String dddd;
@@ -921,8 +925,7 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 					ComDebugln(pole);
 				}
 				ComDebugln("-------------------------\n");
-				
-				//setTime(int sc, int mn, int hr, int dy, int mt, int yr, int ms)
+
 				int sc, mn, hr, dy, mt, yr;
 				sc = atoi(argv[5]);
 				mn = atoi(argv[4]);
@@ -1051,4 +1054,99 @@ void Double2Bytes(double val, uint8_t *bytes_array)
 	bytes_array[2] = loc_buff[5];
 	bytes_array[1] = loc_buff[6];
 	bytes_array[0] = loc_buff[7];
+}
+
+bool UlozZaznamDoBuffera(LOGBUFF_t *logBuffStruc)
+{
+	if (logBuffStruc->PocetZaznamov >= maxPocetZaznamov)
+	{
+		return false;
+	}
+	if (((logBuffStruc->zaznam.pocetDat + 5) + logBuffStruc->BufferIndex) >= maxVelkostLogBuffera)
+	{
+		return false;
+	}
+
+	logBuffStruc->AdresList[logBuffStruc->PocetZaznamov] = logBuffStruc->BufferIndex;
+
+	uint8_t *ptrBuffer;
+	uint32_t epoch = logBuffStruc->zaznam.PosixTime;
+	logBuffStruc->Buffer[logBuffStruc->BufferIndex++] = epoch & 0xff;
+	logBuffStruc->Buffer[logBuffStruc->BufferIndex++] = epoch >> 8;
+	logBuffStruc->Buffer[logBuffStruc->BufferIndex++] = epoch >> 16;
+	logBuffStruc->Buffer[logBuffStruc->BufferIndex++] = epoch >> 24;
+	logBuffStruc->Buffer[logBuffStruc->BufferIndex++] = logBuffStruc->zaznam.zaznamID;
+
+	ptrBuffer = (uint8_t *)logBuffStruc->zaznam.data;
+	for (uint8_t i = 0; i < logBuffStruc->zaznam.pocetDat; i++)
+	{
+		logBuffStruc->Buffer[logBuffStruc->BufferIndex++] = ptrBuffer[i];
+	}
+
+	logBuffStruc->PocetZaznamov++;
+	char tt[100];
+	sprintf(tt, "Ukladam zaznam: %u  a index v bufferi:%u\r\n", logBuffStruc->PocetZaznamov, logBuffStruc->BufferIndex);
+	ComDebug(tt);
+	return true;
+}
+
+bool VyberZaznamBuffera(String *JsonFormat, LOGBUFF_t *logBuffStruc)
+{
+	if (logBuffStruc->PocetZaznamov == 0)
+	{
+		return false;
+	}
+	uint16_t PocetBytesZaznamu = logBuffStruc->AdresList[1] - logBuffStruc->AdresList[0];
+	if (logBuffStruc->PocetZaznamov == 1)
+	{
+		PocetBytesZaznamu = logBuffStruc->BufferIndex;
+	}
+	char locBuff[110];
+	memset(locBuff, 0, sizeof(locBuff));
+	for (uint16_t i = 0; i < PocetBytesZaznamu; i++)
+	{
+		locBuff[i] = logBuffStruc->Buffer[i];
+	}
+	//printf("Spracuvam zaznam co ma pocet bytes:%u  a to :%s\r\n", PocetBytesZaznamu, locBuff);
+
+	memcpy(&logBuffStruc->Buffer[0], &logBuffStruc->Buffer[PocetBytesZaznamu], (logBuffStruc->BufferIndex - PocetBytesZaznamu));
+	memcpy(&logBuffStruc->AdresList[0], &logBuffStruc->AdresList[1], (logBuffStruc->PocetZaznamov * 2));
+	logBuffStruc->AdresList[0] = 0;
+	logBuffStruc->PocetZaznamov--;
+	for (uint16_t i = 1; i < logBuffStruc->PocetZaznamov; i++)
+	{
+		logBuffStruc->AdresList[i] -= PocetBytesZaznamu;
+	}
+	logBuffStruc->BufferIndex -= PocetBytesZaznamu;
+
+	char tt[50];
+	sprintf(tt, "Id zaznamu je :%u", locBuff[4]);
+	ComDebug(tt);
+
+	//sprintf(tt,"Epoch 0-3:%u %u %u %u\r\n", locBuff[0], locBuff[1], locBuff[2], locBuff[3]);
+	//ComDebug(tt);
+
+	long temp = locBuff[3];
+	temp <<= 8; // stol(epoch);
+	temp += locBuff[2];
+	temp <<= 8;
+	temp += locBuff[1];
+	temp <<= 8;
+	temp += locBuff[0];
+
+    sprintf(tt, "cas: %d:%d:%d  %d.%d.%d\r\n", hour(temp), minute(temp) , second(temp), day(temp), month(temp), year(temp));
+	ComDebug(tt);
+	//const time_t old = (time_t)temp;
+	//struct tm *oldt = gmtime(&old);
+	//sprintf(tt, "cas: %d:%d:%d  %d.%d.%d\r\n", oldt->tm_hour, oldt->tm_min, oldt->tm_sec, oldt->tm_wday, oldt->tm_mon, oldt->tm_year);
+	//ComDebug(tt);
+	//ComDebug(asctime(oldt));
+	if (locBuff[4] == IDzaznamu_SCT_prud)
+	{
+	}
+	// JSONVar tempObject;
+	// tempObject["Time"] = "2021:9:22:12:22:33:156";
+	// tempObject["AI1"] = "23.4";
+	// JsonFormat = "{Cas"
+	return true;
 }

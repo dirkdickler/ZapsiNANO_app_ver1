@@ -40,12 +40,23 @@ typedef struct
 typedef struct
 {
 	uint32_t PosixTime;
-	uint8_t  zaznamID;
-	uint8_t  pocetDat;
-	uint8_t  suma;
-	uint8_t* data;
-}ZAZNAM_t;
+	uint8_t zaznamID;
+	uint8_t data[100];
+	uint8_t pocetDat;
+	//uint8_t  suma;
 
+} ZAZNAM_t;
+
+#define maxPocetZaznamov 1000
+#define maxVelkostLogBuffera 8192
+typedef struct
+{
+	u8 Buffer[maxVelkostLogBuffera];
+	u16 PocetZaznamov;
+	u16 BufferIndex;
+	u16 AdresList[maxPocetZaznamov];
+	ZAZNAM_t zaznam;
+} LOGBUFF_t;
 
 //definovani ID  sprav
 #define MsgID_Ping 1
@@ -104,7 +115,7 @@ extern wiz_NetInfo eth;
 extern SPIClass SDSPI;
 extern ESP32Time rtc;
 extern JSONVar myObject, myObject2, ObjDatumCas, ObjTopeni, JSON_DebugMsg;
-
+extern LOGBUFF_t LogBuffer;
 extern bool Internet_CasDostupny;
 extern bool RTC_cas_OK;
 extern char TX_BUF[];
