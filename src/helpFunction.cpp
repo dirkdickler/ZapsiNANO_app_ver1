@@ -550,11 +550,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 }
 
 void onEvent(AsyncWebSocket *server,
-			 AsyncWebSocketClient *client,
-			 AwsEventType type,
-			 void *arg,
-			 uint8_t *data,
-			 size_t len)
+				 AsyncWebSocketClient *client,
+				 AwsEventType type,
+				 void *arg,
+				 uint8_t *data,
+				 size_t len)
 {
 	switch (type)
 	{
@@ -596,7 +596,7 @@ void WiFi_init(void)
 	// Print ESP Local IP Address
 	Serial.println(WiFi.localIP());
 
-	ws.onEvent(onEvent);	//initWebSocket();
+	ws.onEvent(onEvent);		//initWebSocket();
 	server.addHandler(&ws); //initWebSocket();
 
 	FuncServer_On();
@@ -889,11 +889,11 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 				//ComDebugln("-------------------------\n");
 
 				if (eth.mac[0] == strtol(argv[0], NULL, 16) &&
-					eth.mac[1] == strtol(argv[1], NULL, 16) &&
-					eth.mac[2] == strtol(argv[2], NULL, 16) &&
-					eth.mac[3] == strtol(argv[3], NULL, 16) &&
-					eth.mac[4] == strtol(argv[4], NULL, 16) &&
-					eth.mac[5] == strtol(argv[5], NULL, 16))
+					 eth.mac[1] == strtol(argv[1], NULL, 16) &&
+					 eth.mac[2] == strtol(argv[2], NULL, 16) &&
+					 eth.mac[3] == strtol(argv[3], NULL, 16) &&
+					 eth.mac[4] == strtol(argv[4], NULL, 16) &&
+					 eth.mac[5] == strtol(argv[5], NULL, 16))
 				{
 					ComDebugln("Super JSON sa rovna mojej MAC adrese");
 					myTimer.socketCloseTimeout = 0; // tu je akoze dosiel JSON string kde je MAC
@@ -934,11 +934,11 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 				mt = atoi(argv[1]);
 				yr = atoi(argv[0]);
 				if ((sc < 60 && sc > -1) &&
-					(mn > -1 && mn < 60) &&
-					(hr > -1 && hr < 24) &&
-					(dy > 0 && dy < 32) &&
-					(mt > 0 && mt < 13) &&
-					(yr > 2000 && yr < 2500))
+					 (mn > -1 && mn < 60) &&
+					 (hr > -1 && hr < 24) &&
+					 (dy > 0 && dy < 32) &&
+					 (mt > 0 && mt < 13) &&
+					 (yr > 2000 && yr < 2500))
 				{
 					//TODO tu mas uz rozparsrovany RTC, tak si ho uloz kam potrebujes do ESP casu, or do I2C RTC modulu
 					rtc.setTime(sc, mn, hr, dy, mt, yr, 0);
@@ -1090,12 +1090,9 @@ bool UlozZaznamDoBuffera(LOGBUFF_t *logBuffStruc)
 	return true;
 }
 
-bool VyberZaznamBuffera(String *JsonFormat, LOGBUFF_t *logBuffStruc)
+String VyberZaznam(LOGBUFF_t *logBuffStruc, bool zmazZaznam)
 {
-	if (logBuffStruc->PocetZaznamov == 0)
-	{
-		return false;
-	}
+
 	uint16_t PocetBytesZaznamu = logBuffStruc->AdresList[1] - logBuffStruc->AdresList[0];
 	if (logBuffStruc->PocetZaznamov == 1)
 	{
@@ -1109,22 +1106,22 @@ bool VyberZaznamBuffera(String *JsonFormat, LOGBUFF_t *logBuffStruc)
 	}
 	//printf("Spracuvam zaznam co ma pocet bytes:%u  a to :%s\r\n", PocetBytesZaznamu, locBuff);
 
-	memcpy(&logBuffStruc->Buffer[0], &logBuffStruc->Buffer[PocetBytesZaznamu], (logBuffStruc->BufferIndex - PocetBytesZaznamu));
-	memcpy(&logBuffStruc->AdresList[0], &logBuffStruc->AdresList[1], (logBuffStruc->PocetZaznamov * 2));
-	logBuffStruc->AdresList[0] = 0;
-	logBuffStruc->PocetZaznamov--;
-	for (uint16_t i = 1; i < logBuffStruc->PocetZaznamov; i++)
+	if (zmazZaznam == true)
 	{
-		logBuffStruc->AdresList[i] -= PocetBytesZaznamu;
+		memcpy(&logBuffStruc->Buffer[0], &logBuffStruc->Buffer[PocetBytesZaznamu], (logBuffStruc->BufferIndex - PocetBytesZaznamu));
+		memcpy(&logBuffStruc->AdresList[0], &logBuffStruc->AdresList[1], (logBuffStruc->PocetZaznamov * 2));
+		logBuffStruc->AdresList[0] = 0;
+		logBuffStruc->PocetZaznamov--;
+		for (uint16_t i = 1; i < logBuffStruc->PocetZaznamov; i++)
+		{
+			logBuffStruc->AdresList[i] -= PocetBytesZaznamu;
+		}
+		logBuffStruc->BufferIndex -= PocetBytesZaznamu;
 	}
-	logBuffStruc->BufferIndex -= PocetBytesZaznamu;
 
 	char tt[50];
 	sprintf(tt, "Id zaznamu je :%u", locBuff[4]);
 	ComDebug(tt);
-
-	//sprintf(tt,"Epoch 0-3:%u %u %u %u\r\n", locBuff[0], locBuff[1], locBuff[2], locBuff[3]);
-	//ComDebug(tt);
 
 	long temp = locBuff[3];
 	temp <<= 8; // stol(epoch);
@@ -1134,19 +1131,28 @@ bool VyberZaznamBuffera(String *JsonFormat, LOGBUFF_t *logBuffStruc)
 	temp <<= 8;
 	temp += locBuff[0];
 
-    sprintf(tt, "cas: %d:%d:%d  %d.%d.%d\r\n", hour(temp), minute(temp) , second(temp), day(temp), month(temp), year(temp));
-	ComDebug(tt);
-	//const time_t old = (time_t)temp;
-	//struct tm *oldt = gmtime(&old);
-	//sprintf(tt, "cas: %d:%d:%d  %d.%d.%d\r\n", oldt->tm_hour, oldt->tm_min, oldt->tm_sec, oldt->tm_wday, oldt->tm_mon, oldt->tm_year);
-	//ComDebug(tt);
-	//ComDebug(asctime(oldt));
+	String StrCas;
+	StrCas = String("") + hour(temp) + String(":") + minute(temp) + String(":") + minute(temp) + String(":") + minute(temp) + String(":") + minute(temp);
+	String IDzazna = "NOK";
+	String StrVall = "---";
+	float Val1, Val2;
 	if (locBuff[4] == IDzaznamu_SCT_prud)
 	{
+		IDzazna = "AI1";
+		Val1 = Read_Float_Value(&locBuff[5]);
+		Val2 = Read_Float_Value(&locBuff[9]);
+		StrVall = String(Val1, 1) + String(":") + String(Val2, 1);
 	}
-	// JSONVar tempObject;
-	// tempObject["Time"] = "2021:9:22:12:22:33:156";
-	// tempObject["AI1"] = "23.4";
-	// JsonFormat = "{Cas"
-	return true;
+	JSONVar tempObject;
+	tempObject["Cas"] = StrCas;
+	tempObject[IDzazna] = StrVall;
+
+	String sprava;
+	sprava = JSON.stringify(&tempObject);
+	return sprava;
+}
+
+u16 VratPocetZaznamu(LOGBUFF_t *logBuffStruc)
+{
+	return logBuffStruc->PocetZaznamov;
 }

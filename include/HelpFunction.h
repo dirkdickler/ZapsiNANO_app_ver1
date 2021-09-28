@@ -49,5 +49,8 @@ float Read_Float_Value(char *buff);
 void float2Bytes(float val, uint8_t *bytes_array);
 void Double2Bytes(double val, uint8_t *bytes_array);
 bool UlozZaznamDoBuffera(LOGBUFF_t *logBuffStruc);
-bool VyberZaznamBuffera(String *JsonFormat, LOGBUFF_t *logBuffStruc);
+String VyberZaznam( LOGBUFF_t *logBuffStruc, bool zmazZaznam);
+u16 VratPocetZaznamu(LOGBUFF_t *logBuffStruc);
+
+
 #endif

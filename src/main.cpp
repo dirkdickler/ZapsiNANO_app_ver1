@@ -334,7 +334,7 @@ void Loop_10sek(void)
 			if (VratPocetZaznamu(&LogBuffer) != 0)
 			{ 
 				ComDebugln("Toto varilo vyber zaznam:");
-				ComDebug(VyberZaznam(&LogBuffer));
+				ComDebug(VyberZaznam(&LogBuffer, false));
 			}
 		}
 	}
