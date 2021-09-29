@@ -39,7 +39,7 @@ typedef struct
 
 typedef struct
 {
-	uint32_t PosixTime;
+	long PosixTime;
 	uint8_t zaznamID;
 	uint8_t data[100];
 	uint8_t pocetDat;
@@ -48,7 +48,7 @@ typedef struct
 } ZAZNAM_t;
 
 #define maxPocetZaznamov 1000
-#define maxVelkostLogBuffera 8192
+#define maxVelkostLogBuffera 200
 typedef struct
 {
 	u8 Buffer[maxVelkostLogBuffera];

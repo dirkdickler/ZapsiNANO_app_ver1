@@ -439,6 +439,7 @@ void System_init(void)
 	WizChip_Reset();
 	WizChip_Config(&eth);
 
+	flg.PeriodickyOdosielajZaznamyzBuffera = false;
 	Serial.print("[Func:System_init]  end..");
 }
 
@@ -550,11 +551,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 }
 
 void onEvent(AsyncWebSocket *server,
-				 AsyncWebSocketClient *client,
-				 AwsEventType type,
-				 void *arg,
-				 uint8_t *data,
-				 size_t len)
+			 AsyncWebSocketClient *client,
+			 AwsEventType type,
+			 void *arg,
+			 uint8_t *data,
+			 size_t len)
 {
 	switch (type)
 	{
@@ -596,7 +597,7 @@ void WiFi_init(void)
 	// Print ESP Local IP Address
 	Serial.println(WiFi.localIP());
 
-	ws.onEvent(onEvent);		//initWebSocket();
+	ws.onEvent(onEvent);	//initWebSocket();
 	server.addHandler(&ws); //initWebSocket();
 
 	FuncServer_On();
@@ -889,11 +890,11 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 				//ComDebugln("-------------------------\n");
 
 				if (eth.mac[0] == strtol(argv[0], NULL, 16) &&
-					 eth.mac[1] == strtol(argv[1], NULL, 16) &&
-					 eth.mac[2] == strtol(argv[2], NULL, 16) &&
-					 eth.mac[3] == strtol(argv[3], NULL, 16) &&
-					 eth.mac[4] == strtol(argv[4], NULL, 16) &&
-					 eth.mac[5] == strtol(argv[5], NULL, 16))
+					eth.mac[1] == strtol(argv[1], NULL, 16) &&
+					eth.mac[2] == strtol(argv[2], NULL, 16) &&
+					eth.mac[3] == strtol(argv[3], NULL, 16) &&
+					eth.mac[4] == strtol(argv[4], NULL, 16) &&
+					eth.mac[5] == strtol(argv[5], NULL, 16))
 				{
 					ComDebugln("Super JSON sa rovna mojej MAC adrese");
 					myTimer.socketCloseTimeout = 0; // tu je akoze dosiel JSON string kde je MAC
@@ -902,8 +903,10 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 			}
 			else if (myObject.hasOwnProperty("Cas"))
 			{
+				//{"Cas":"2021:9:22:13:15:16 "}
 				// Ked v JSON dosje "Cas", takto beru ze na druhej strane je opravneny server a mazy flag vynuteneho Close soketu
 				myTimer.socketCloseTimeout = 0;
+				//flg.PeriodickyOdosielajZaznamyzBuffera = true;
 
 				ComDebug("myObject ma CAS JSON");
 				ComDebugln((const char *)myObject["Cas"]);
@@ -934,11 +937,11 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 				mt = atoi(argv[1]);
 				yr = atoi(argv[0]);
 				if ((sc < 60 && sc > -1) &&
-					 (mn > -1 && mn < 60) &&
-					 (hr > -1 && hr < 24) &&
-					 (dy > 0 && dy < 32) &&
-					 (mt > 0 && mt < 13) &&
-					 (yr > 2000 && yr < 2500))
+					(mn > -1 && mn < 60) &&
+					(hr > -1 && hr < 24) &&
+					(dy > 0 && dy < 32) &&
+					(mt > 0 && mt < 13) &&
+					(yr > 2000 && yr < 2500))
 				{
 					//TODO tu mas uz rozparsrovany RTC, tak si ho uloz kam potrebujes do ESP casu, or do I2C RTC modulu
 					rtc.setTime(sc, mn, hr, dy, mt, yr, 0);
@@ -991,17 +994,27 @@ int32_t Read_32_Value(char *buff)
 	int32_t *ptr = (int32_t *)buff;
 	return *ptr;
 }
-void Read_u64_Value(char *buff, char *data)
-{
-	memcpy(data, buff, sizeof(uint64_t));
 
-	/*uint32_t *ptr = (uint32_t *)buff;
-	uint32_t *ptr2 = (uint32_t *)buff+4;
-	uint64_t k = ((uint64_t)(*ptr2))<<32;
-	k|= ((uint64_t)(*ptr));
-	return k;*/
-	//uint64_t *ptr = (uint64_t *)buff; //TODO nejede pri RELEASE compilaci "vytuhne
-	//return *ptr;
+//TODO tu si otestuj este nacitani 64bit val lebo na STM32 to vytuhovalo inakpouzi cez memcpy dole odkomentovanu
+// void Read_u64_Value(char *buff, char *data)
+// {
+//    memcpy(data, buff, sizeof(uint64_t));
+// }
+u64 Read_u64_Value(char *buff)
+{
+	uint64_t *ptr = (uint64_t *)buff;
+	return *ptr;
+}
+
+void Swap_float(float *v)
+{
+	char *c = (char *)v;
+	char a = c[0];
+	c[0] = c[3];
+	c[3] = a;
+	a = c[1];
+	c[1] = c[2];
+	c[2] = a;
 }
 
 float Read_Float_Value(char *buff)
@@ -1012,8 +1025,6 @@ float Read_Float_Value(char *buff)
 
 void float2Bytes(float val, uint8_t *bytes_array)
 {
-
-	uint8_t loc_buff[4];
 	// Create union of shared memory space
 	union
 	{
@@ -1023,17 +1034,11 @@ void float2Bytes(float val, uint8_t *bytes_array)
 	// Overite bytes of union with float variable
 	u.float_variable = val;
 	// Assign bytes to input array
-	memcpy(loc_buff, u.temp_array, 4);
-
-	bytes_array[3] = loc_buff[0];
-	bytes_array[2] = loc_buff[1];
-	bytes_array[1] = loc_buff[2];
-	bytes_array[0] = loc_buff[3];
+	memcpy(bytes_array, u.temp_array, 4);
 }
 
 void Double2Bytes(double val, uint8_t *bytes_array)
 {
-
 	uint8_t loc_buff[8];
 	// Create union of shared memory space
 	union
@@ -1044,33 +1049,56 @@ void Double2Bytes(double val, uint8_t *bytes_array)
 	// Overite bytes of union with float variable
 	u.float_variable = val;
 	// Assign bytes to input array
-	memcpy(loc_buff, u.temp_array, 8);
-
-	bytes_array[7] = loc_buff[0];
-	bytes_array[6] = loc_buff[1];
-	bytes_array[5] = loc_buff[2];
-	bytes_array[4] = loc_buff[3];
-	bytes_array[3] = loc_buff[4];
-	bytes_array[2] = loc_buff[5];
-	bytes_array[1] = loc_buff[6];
-	bytes_array[0] = loc_buff[7];
+	memcpy(bytes_array, u.temp_array, 8);
 }
 
-bool UlozZaznamDoBuffera(LOGBUFF_t *logBuffStruc)
+/**/
+bool OdosliZaznamDosocketu(LOGBUFF_t *logBuffStruc)
+{
+	char locWorkBuff[250];
+	if (flg.PeriodickyOdosielajZaznamyzBuffera == true)
+	{
+		String sprava = VyberZaznam(logBuffStruc, false);
+		//ComDebugln("Toto idem poslat do Socketu");
+		//ComDebugln(sprava);
+		sprava.toCharArray(locWorkBuff, sizeof(locWorkBuff), 0);
+		i32 ret = send(TCP_10001_socket, (u8 *)locWorkBuff, strlen(locWorkBuff));
+		//ComDebug(String("Do  TCP soketu sa malo poslat  bytes: ") + strlen(locWorkBuff) + String(" a poslalo sa:") + ret);
+		if (strlen(locWorkBuff) == ret)
+		{
+			//ComDebug("Odoslanie dat do TCP socketu bolo OK, tak zaznam z buffer mazem");
+			//ComDebugln(ret);
+			VyberZaznam(logBuffStruc, true); //zmazem zaznam
+			return true;
+		}
+		else
+		{
+			//ComDebug("Odoslanie dat do TCP socketu bolo NOK!!  zaznam necham v bufferi");
+		}
+	}
+	return false;
+}
+
+bool UlozZaznam(LOGBUFF_t *logBuffStruc)
 {
 	if (logBuffStruc->PocetZaznamov >= maxPocetZaznamov)
 	{
 		return false;
 	}
+
+	//TODO tu si dorob ze ak uz je plnu bufer, tak posun (zahod) najstarsiu hodnotu = vyberZaznam s mazanim doslova
 	if (((logBuffStruc->zaznam.pocetDat + 5) + logBuffStruc->BufferIndex) >= maxVelkostLogBuffera)
 	{
-		return false;
+		ComDebugln( String("Pozor plny buffer, posuvam zaznami pred je pocet") +  logBuffStruc->PocetZaznamov+ String("index v bufferi:") + logBuffStruc->BufferIndex);
+		VyberZaznam(logBuffStruc,true);
+		ComDebugln( String("Po posunutije pocet") +  logBuffStruc->PocetZaznamov+ String("index v bufferi:") + logBuffStruc->BufferIndex);
+		
 	}
 
 	logBuffStruc->AdresList[logBuffStruc->PocetZaznamov] = logBuffStruc->BufferIndex;
 
 	uint8_t *ptrBuffer;
-	uint32_t epoch = logBuffStruc->zaznam.PosixTime;
+	long epoch = logBuffStruc->zaznam.PosixTime;
 	logBuffStruc->Buffer[logBuffStruc->BufferIndex++] = epoch & 0xff;
 	logBuffStruc->Buffer[logBuffStruc->BufferIndex++] = epoch >> 8;
 	logBuffStruc->Buffer[logBuffStruc->BufferIndex++] = epoch >> 16;
@@ -1084,13 +1112,11 @@ bool UlozZaznamDoBuffera(LOGBUFF_t *logBuffStruc)
 	}
 
 	logBuffStruc->PocetZaznamov++;
-	char tt[100];
-	sprintf(tt, "Ukladam zaznam: %u  a index v bufferi:%u\r\n", logBuffStruc->PocetZaznamov, logBuffStruc->BufferIndex);
-	ComDebug(tt);
+	ComDebugln( String("Ukladam zaznam:") +  logBuffStruc->PocetZaznamov+ String("index v bufferi:") + logBuffStruc->BufferIndex);
 	return true;
 }
 
-String VyberZaznam(LOGBUFF_t *logBuffStruc, bool zmazZaznam)
+String VyberZaznam(LOGBUFF_t *logBuffStruc, bool aZrovnaZaznamZmaz)
 {
 
 	uint16_t PocetBytesZaznamu = logBuffStruc->AdresList[1] - logBuffStruc->AdresList[0];
@@ -1106,7 +1132,7 @@ String VyberZaznam(LOGBUFF_t *logBuffStruc, bool zmazZaznam)
 	}
 	//printf("Spracuvam zaznam co ma pocet bytes:%u  a to :%s\r\n", PocetBytesZaznamu, locBuff);
 
-	if (zmazZaznam == true)
+	if (aZrovnaZaznamZmaz == true)
 	{
 		memcpy(&logBuffStruc->Buffer[0], &logBuffStruc->Buffer[PocetBytesZaznamu], (logBuffStruc->BufferIndex - PocetBytesZaznamu));
 		memcpy(&logBuffStruc->AdresList[0], &logBuffStruc->AdresList[1], (logBuffStruc->PocetZaznamov * 2));
@@ -1117,12 +1143,13 @@ String VyberZaznam(LOGBUFF_t *logBuffStruc, bool zmazZaznam)
 			logBuffStruc->AdresList[i] -= PocetBytesZaznamu;
 		}
 		logBuffStruc->BufferIndex -= PocetBytesZaznamu;
+
+		//ComDebugln(String("Vyber zaznam -s MAZANIM!! zosrava zaznamu:") + logBuffStruc->PocetZaznamov);
 	}
-
-	char tt[50];
-	sprintf(tt, "Id zaznamu je :%u", locBuff[4]);
-	ComDebug(tt);
-
+	else
+	{
+		//ComDebugln("Vyber zaznam BEZ zmazania");
+	}
 	long temp = locBuff[3];
 	temp <<= 8; // stol(epoch);
 	temp += locBuff[2];
@@ -1132,7 +1159,13 @@ String VyberZaznam(LOGBUFF_t *logBuffStruc, bool zmazZaznam)
 	temp += locBuff[0];
 
 	String StrCas;
-	StrCas = String("") + hour(temp) + String(":") + minute(temp) + String(":") + minute(temp) + String(":") + minute(temp) + String(":") + minute(temp);
+	StrCas = String("") + year(temp) +
+			 String(":") + month(temp) +
+			 String(":") + day(temp) +
+			 String(":") + hour(temp) +
+			 String(":") + minute(temp) +
+			 String(":") + second(temp);
+
 	String IDzazna = "NOK";
 	String StrVall = "---";
 	float Val1, Val2;
@@ -1143,12 +1176,18 @@ String VyberZaznam(LOGBUFF_t *logBuffStruc, bool zmazZaznam)
 		Val2 = Read_Float_Value(&locBuff[9]);
 		StrVall = String(Val1, 1) + String(":") + String(Val2, 1);
 	}
+	else if (locBuff[4] == IDzaznamu_SCT_test)
+	{
+		IDzazna = "Test1";
+		Val1 = Read_Float_Value(&locBuff[5]);
+		StrVall = String(Val1, 1);
+	}
 	JSONVar tempObject;
 	tempObject["Cas"] = StrCas;
 	tempObject[IDzazna] = StrVall;
 
 	String sprava;
-	sprava = JSON.stringify(&tempObject);
+	sprava = JSON.stringify(tempObject);
 	return sprava;
 }
 

@@ -98,6 +98,7 @@ typedef struct
 
 typedef struct //
 {
+	bool PeriodickyOdosielajZaznamyzBuffera = false;
 	bool RTCinit_done;
 	bool eth_connect;
 	bool test_spustDNS;

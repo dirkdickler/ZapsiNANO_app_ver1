@@ -9,6 +9,10 @@
 
 //Typy zaznamov zaznamov
 #define IDzaznamu_SCT_prud 1
+#define IDzaznamu_SCT_test 2
+
+
+
  
 
 #define input1 0

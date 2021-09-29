@@ -44,11 +44,13 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[]);
 uint16_t Read_u16_Value(char *buff);
 uint32_t Read_u32_Value(char *buff);
 int32_t Read_32_Value(char *buff);
-void Read_u64_Value(char *buff, char *data);
+u64 Read_u64_Value(char *buff);
+void Swap_float(float *v);
 float Read_Float_Value(char *buff);
 void float2Bytes(float val, uint8_t *bytes_array);
 void Double2Bytes(double val, uint8_t *bytes_array);
-bool UlozZaznamDoBuffera(LOGBUFF_t *logBuffStruc);
+bool OdosliZaznamDosocketu(LOGBUFF_t *logBuffStruc);
+bool UlozZaznam(LOGBUFF_t *logBuffStruc);
 String VyberZaznam( LOGBUFF_t *logBuffStruc, bool zmazZaznam);
 u16 VratPocetZaznamu(LOGBUFF_t *logBuffStruc);
 
