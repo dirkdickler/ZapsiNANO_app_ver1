@@ -226,6 +226,7 @@ void Loop_10ms()
 	}
 
 	ScanInputs();
+
 	if (flg.PeriodickyOdosielajZaznamyzBuffera == true && (VratPocetZaznamu(&LogBuffer) != 0))
 	{
 		OdosliZaznamDosocketu(&LogBuffer);
@@ -283,15 +284,14 @@ void Loop_1sek(void)
 	}
 
 	{
-		float testVal = 88.89f;
-		float testVal2 = 99.12f;
-		LogBuffer.zaznam.PosixTime = rtc.getEpoch();
-		LogBuffer.zaznam.zaznamID = IDzaznamu_SCT_prud;
-		float2Bytes(testVal, &LogBuffer.zaznam.data[0]);
-		float2Bytes(testVal2, &LogBuffer.zaznam.data[4]);
-		LogBuffer.zaznam.pocetDat = 8;
-		UlozZaznam(&LogBuffer);
-		//OdosliZaznamDosocketu(&LogBuffer);
+		// float testVal = 88.89f;
+		// float testVal2 = 99.12f;
+		// LogBuffer.zaznam.PosixTime = rtc.getEpoch();
+		// LogBuffer.zaznam.zaznamID = IDzaznamu_SCT_prud;
+		// float2Bytes(testVal, &LogBuffer.zaznam.data[0]);
+		// float2Bytes(testVal2, &LogBuffer.zaznam.data[4]);
+		// LogBuffer.zaznam.pocetDat = 8;
+		// UlozZaznam(&LogBuffer);
 	}
 }
 
@@ -307,12 +307,11 @@ void Loop_10sek(void)
 		float testVal = 23.456f;
 		float testVal2 = 34.567f;
 		LogBuffer.zaznam.PosixTime = rtc.getEpoch();
-		LogBuffer.zaznam.zaznamID = IDzaznamu_SCT_test;
+		LogBuffer.zaznam.zaznamID = IDzaznamu_SCT_prud;
 		float2Bytes(testVal, &LogBuffer.zaznam.data[0]);
-		//float2Bytes(testVal2, &LogBuffer.zaznam.data[4]);
-		LogBuffer.zaznam.pocetDat = 4;
+		float2Bytes(testVal2, &LogBuffer.zaznam.data[4]);
+		LogBuffer.zaznam.pocetDat = 8;
 		UlozZaznam(&LogBuffer);
-		//OdosliZaznamDosocketu(&LogBuffer);
 	}
 
 	//WiFi_connect_sequencer();

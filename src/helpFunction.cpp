@@ -319,16 +319,29 @@ void ScanInputs(void)
 	for (u8 i = 0; i < pocetDIN; i++)
 	{
 		DIN[i].zmena = Input_digital_filtering(&DIN[i], filterTime_DI);
-		if (DIN[i].zmena == true && DIN[i].input == true)
+		if (DIN[i].zmena == true)
 		{
-			DIN[i].counter++;
-		} //tu si incrementuju citac impulzu
-		bolaZmenaVstupu |= DIN[i].zmena;
+			LogBuffer.zaznam.PosixTime = rtc.getEpoch();
+			LogBuffer.zaznam.zaznamID = IDzaznamu_IN1 + i;
+			LogBuffer.zaznam.pocetDat = 1;
+
+			if (DIN[i].input == true)
+			{
+				DIN[i].counter++;
+				LogBuffer.zaznam.data[0] = 1;
+			} //tu si incrementuju citac impulzu
+			else
+			{
+				LogBuffer.zaznam.data[0] = 0;
+			}
+			UlozZaznam(&LogBuffer);
+			bolaZmenaVstupu |= DIN[i].zmena;
+		}
 	}
 
 	if (bolaZmenaVstupu == true)
 	{
-		Serial.print("[ScanInputs] hlasi ze mam zmenu na vstupoch....");
+		ComDebugln("[ScanInputs] hlasi ze mam zmenu na vstupoch....");
 	}
 
 	// for (u8 u = 0; u < pocetDIN; u++) //toto musi by tu na konci funkcie lebo to nastavi ze aktualny do predchoziho stavu
@@ -336,7 +349,6 @@ void ScanInputs(void)
 	// 	DIN[u].input_prew = DIN[u].input;
 	// }
 }
-
 void System_init(void)
 {
 	Serial.print("[Func:System_init]  begin..");
@@ -1081,18 +1093,12 @@ bool OdosliZaznamDosocketu(LOGBUFF_t *logBuffStruc)
 
 bool UlozZaznam(LOGBUFF_t *logBuffStruc)
 {
-	if (logBuffStruc->PocetZaznamov >= maxPocetZaznamov)
+	if ((((logBuffStruc->zaznam.pocetDat + 5) + logBuffStruc->BufferIndex) >= maxVelkostLogBuffera) ||
+		(logBuffStruc->PocetZaznamov >= maxPocetZaznamov))
 	{
-		return false;
-	}
-
-	//TODO tu si dorob ze ak uz je plnu bufer, tak posun (zahod) najstarsiu hodnotu = vyberZaznam s mazanim doslova
-	if (((logBuffStruc->zaznam.pocetDat + 5) + logBuffStruc->BufferIndex) >= maxVelkostLogBuffera)
-	{
-		ComDebugln( String("Pozor plny buffer, posuvam zaznami pred je pocet") +  logBuffStruc->PocetZaznamov+ String("index v bufferi:") + logBuffStruc->BufferIndex);
-		VyberZaznam(logBuffStruc,true);
-		ComDebugln( String("Po posunutije pocet") +  logBuffStruc->PocetZaznamov+ String("index v bufferi:") + logBuffStruc->BufferIndex);
-		
+		ComDebugln(String("Pozor plny buffer, posuvam zaznami pred je pocet") + logBuffStruc->PocetZaznamov + String("index v bufferi:") + logBuffStruc->BufferIndex);
+		VyberZaznam(logBuffStruc, true);
+		ComDebugln(String("Po posunutije pocet") + logBuffStruc->PocetZaznamov + String("index v bufferi:") + logBuffStruc->BufferIndex);
 	}
 
 	logBuffStruc->AdresList[logBuffStruc->PocetZaznamov] = logBuffStruc->BufferIndex;
@@ -1112,13 +1118,13 @@ bool UlozZaznam(LOGBUFF_t *logBuffStruc)
 	}
 
 	logBuffStruc->PocetZaznamov++;
-	ComDebugln( String("Ukladam zaznam:") +  logBuffStruc->PocetZaznamov+ String("index v bufferi:") + logBuffStruc->BufferIndex);
+	ComDebugln(String("Ukladam zaznam:") + logBuffStruc->PocetZaznamov + String("index v bufferi:") + logBuffStruc->BufferIndex);
 	return true;
 }
 
 String VyberZaznam(LOGBUFF_t *logBuffStruc, bool aZrovnaZaznamZmaz)
 {
-
+	static u8 millisekundy = 0;
 	uint16_t PocetBytesZaznamu = logBuffStruc->AdresList[1] - logBuffStruc->AdresList[0];
 	if (logBuffStruc->PocetZaznamov == 1)
 	{
@@ -1164,30 +1170,73 @@ String VyberZaznam(LOGBUFF_t *logBuffStruc, bool aZrovnaZaznamZmaz)
 			 String(":") + day(temp) +
 			 String(":") + hour(temp) +
 			 String(":") + minute(temp) +
-			 String(":") + second(temp);
+			 String(":") + second(temp) +
+			 String(":") + millisekundy;
+	if (++millisekundy == 100)
+	{
+		millisekundy = 0;
+	}
 
 	String IDzazna = "NOK";
 	String StrVall = "---";
 	float Val1, Val2;
-	if (locBuff[4] == IDzaznamu_SCT_prud)
+	switch (locBuff[4])
+	{
+	case IDzaznamu_SCT_prud:
 	{
 		IDzazna = "AI1";
 		Val1 = Read_Float_Value(&locBuff[5]);
 		Val2 = Read_Float_Value(&locBuff[9]);
 		StrVall = String(Val1, 1) + String(":") + String(Val2, 1);
 	}
-	else if (locBuff[4] == IDzaznamu_SCT_test)
+	break;
+	case IDzaznamu_IN1:
+	{
+		IDzazna = "IN1";
+		u8 Vall = locBuff[5];
+		StrVall = String(Vall);
+	}
+	break;
+	case IDzaznamu_IN2:
+	{
+		IDzazna = "IN2";
+		u8 Vall = locBuff[5];
+		StrVall = String(Vall);
+	}
+	break;
+	case IDzaznamu_IN3:
+	{
+		IDzazna = "IN3";
+		u8 Vall = locBuff[5];
+		StrVall = String(Vall);
+	}
+	break;
+	case IDzaznamu_IN4:
+	{
+		IDzazna = "IN4";
+		u8 Vall = locBuff[5];
+		StrVall = String(Vall);
+	}
+	break;
+	case IDzaznamu_SCT_test:
 	{
 		IDzazna = "Test1";
 		Val1 = Read_Float_Value(&locBuff[5]);
 		StrVall = String(Val1, 1);
 	}
+	break;
+
+	default:
+		break;
+	}
+
 	JSONVar tempObject;
 	tempObject["Cas"] = StrCas;
 	tempObject[IDzazna] = StrVall;
 
 	String sprava;
 	sprava = JSON.stringify(tempObject);
+	sprava += String("\r\n");
 	return sprava;
 }
 

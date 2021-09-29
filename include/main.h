@@ -48,7 +48,7 @@ typedef struct
 } ZAZNAM_t;
 
 #define maxPocetZaznamov 1000
-#define maxVelkostLogBuffera 200
+#define maxVelkostLogBuffera 15000
 typedef struct
 {
 	u8 Buffer[maxVelkostLogBuffera];

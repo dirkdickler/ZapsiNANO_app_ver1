@@ -9,7 +9,11 @@
 
 //Typy zaznamov zaznamov
 #define IDzaznamu_SCT_prud 1
-#define IDzaznamu_SCT_test 2
+#define IDzaznamu_IN1 2
+#define IDzaznamu_IN2 3
+#define IDzaznamu_IN3 4
+#define IDzaznamu_IN4 5
+#define IDzaznamu_SCT_test 6
 
 
 
