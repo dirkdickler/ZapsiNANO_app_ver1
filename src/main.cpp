@@ -11,6 +11,8 @@
 #include <Ticker.h>
 #include <EEPROM.h>
 #include <TimeLib.h>
+#include <Wire.h>
+#include "pcf8563.h"
 #include "index.html"
 #include "main.h"
 #include "define.h"
@@ -56,7 +58,7 @@ char swRxBuffer[16];
 SPIClass SDSPI(HSPI);
 
 ESP32Time rtc;
-
+PCF8563_Class PCFrtc;
 IPAddress local_IP(192, 168, 1, 14);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
@@ -240,21 +242,30 @@ void Loop_100ms(void)
 void Loop_1sek(void)
 {
 	//ComDebug("[1sek Loop]  mam 1 sek....  ");
-	String sprava = rtc.getTime("\r\n[%H:%M:%S] karta ");
+	String sprava = rtc.getTime("\r\n[%H:%M:%S] karta a toto cas z PCF8563:");
+	sprava += PCFrtc.formatDateTime(PCF_TIMEFORMAT_YYYY_MM_DD_H_M_S);
+	// unsigned long start = micros();
+	// sprava += PCFrtc.formatDateTime(PCF_TIMEFORMAT_YYYY_MM_DD_H_M_S);
+	// unsigned long end = micros();
+	// unsigned long delta = end - start;
+	// Serial.print("DELTA PCF8563: ");
+	// Serial.println(delta);
+
 	if (digitalRead(SD_CD_pin) == LOW)
 	{
 		//sprintf(TX_BUF, "[1sek Loop]  karta zasunota\r\n");
-		sprava += "Zasunuta";
+		sprava += " Zasunuta";
 	}
 	else
 	{
 		//sprintf(TX_BUF, "[1sek Loop]  karta Vysunuta\r\n");
-		sprava += "Vysunuta";
+		sprava += " Vysunuta";
 	}
 
 	char tt[100];
 	sprintf(tt, "   SCTprud: %uA\r\n", SCT_prud_0);
 	sprava += tt;
+	ComDebugln(sprava);
 	//TCP_debugMsg(sprava);
 	//sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
 	//send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
