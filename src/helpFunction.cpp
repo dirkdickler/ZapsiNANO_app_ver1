@@ -3,7 +3,6 @@
 #include <elegantWebpage.h>
 #include <Hash.h>
 
-
 #include <Arduino_JSON.h>
 #include <TimeLib.h>
 #include "SD.h"
@@ -379,12 +378,12 @@ void System_init(void)
 	pinMode(Joy_left_pin, INPUT_PULLUP);
 	pinMode(Joy_right_pin, INPUT_PULLUP);
 
-	RTC_Date Pccc; 
+	RTC_Date Pccc;
 	Wire.begin(18, 17);
-    PCFrtc.begin();
-    PCFrtc.setDateTime(2019, 4, 1, 12, 33, 59);
+	PCFrtc.begin();
+	//PCFrtc.setDateTime(2019, 4, 1, 12, 33, 59);
 	Pccc = PCFrtc.getDateTime();
-	rtc.setTime(Pccc.second,Pccc.minute,Pccc.hour,Pccc.day,Pccc.month,Pccc.year); // 17th Jan 2021 15:24:30
+	rtc.setTime(Pccc.second, Pccc.minute, Pccc.hour, Pccc.day, Pccc.month, Pccc.year); // 17th Jan 2021 15:24:30
 
 	NaplnWizChipStrukturu();
 
@@ -962,7 +961,10 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 					(yr > 2000 && yr < 2500))
 				{
 					//TODO tu mas uz rozparsrovany RTC, tak si ho uloz kam potrebujes do ESP casu, or do I2C RTC modulu
-					rtc.setTime(sc, mn, hr, dy, mt, yr, 0);
+					RTC_Date Pccc;
+					PCFrtc.setDateTime(yr, mt, dy, hr, mn, sc);
+					Pccc = PCFrtc.getDateTime();
+					rtc.setTime(Pccc.second, Pccc.minute, Pccc.hour, Pccc.day, Pccc.month, Pccc.year); // 17th Jan 2021 15:24:30
 				}
 				else
 				{
