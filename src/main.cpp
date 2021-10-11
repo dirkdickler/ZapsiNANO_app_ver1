@@ -106,7 +106,7 @@ void setup()
 	System_init();
 
 	ESP_LOGW("", "est ESLP log W"); 
-	ESP_LOGI("TEST SP log I", "storage used: %lld/%lld", 23,24);
+	ESP_LOGI("TEST SP log I", "storage usedd: %lld/%lld", 23,24);
 	//attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
 	//pinMode(ENCODER1, INPUT);
 	//pinMode(ENCODER2, INPUT);
