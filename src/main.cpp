@@ -101,7 +101,7 @@ wiz_NetInfo eth =
 
 void setup()
 {
-	Serial.begin(115200);
+	Serial.begin(115200); 
 	Serial.println("Spustam applikaciu.a1");
 	System_init();
 
