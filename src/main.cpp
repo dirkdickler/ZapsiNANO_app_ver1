@@ -32,12 +32,12 @@
 volatile long int encoder_pos = 0;
 
 // Replace with your network credentials
-//const char* ssid = "Grabcovi";
-//const char* password = "40177298";
+// const char* ssid = "Grabcovi";
+// const char* password = "40177298";
 const char *soft_ap_ssid = "aDum_Server";
 const char *soft_ap_password = "aaaaaaaaaa";
-//const char *ssid = "semiart";
-//const char *password = "aabbccddff";
+// const char *ssid = "semiart";
+// const char *password = "aabbccddff";
 char NazovSiete[30];
 char Heslo[30];
 
@@ -63,17 +63,17 @@ PCF8563_Class PCFrtc;
 IPAddress local_IP(192, 168, 1, 14);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
-IPAddress primaryDNS(8, 8, 8, 8);	//optional
-IPAddress secondaryDNS(8, 8, 4, 4); //optional
+IPAddress primaryDNS(8, 8, 8, 8);	// optional
+IPAddress secondaryDNS(8, 8, 4, 4); // optional
 
 const char *ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 0;		 //3600;
-const int daylightOffset_sec = 0; //3600; //letny cas
+const long gmtOffset_sec = 0;	  // 3600;
+const int daylightOffset_sec = 0; // 3600; //letny cas
 struct tm MyRTC_cas;
-bool Internet_CasDostupny = false; //to je ze dostava cas z Inernetu
-bool RTC_cas_OK = false;			  //ze mam RTC fakt nastaveny bud z interneru, alebo nastaveny manualne
-											  //a to teda ze v RTC mam fakr realny cas
-											  //Tento FLAG, nastavi len pri nacitanie casu z internutu, alebo do buducna manualne nastavenie casu cew WEB
+bool Internet_CasDostupny = false; // to je ze dostava cas z Inernetu
+bool RTC_cas_OK = false;		   // ze mam RTC fakt nastaveny bud z interneru, alebo nastaveny manualne
+								   // a to teda ze v RTC mam fakr realny cas
+								   // Tento FLAG, nastavi len pri nacitanie casu z internutu, alebo do buducna manualne nastavenie casu cew WEB
 
 u16_t SCT_prud_0 = 0;
 
@@ -87,13 +87,13 @@ VSTUP_t DIN[pocetDIN_celkovo];
 char TX_BUF[TX_RX_MAX_BUF_SIZE];
 //------------------------------------------------------------------------------------------------------------------
 wiz_NetInfo eth =
-	 {
-		  .mac = {0x80, 0x1F, 0x12, 0x56, 0xC7, 0xC9},
-		  .ip = {192, 168, 1, 10},
-		  .sn = {255, 255, 255, 0},
-		  .gw = {192, 168, 1, 1},
-		  .dns = {8, 8, 8, 8},
-		  .dhcp = NETINFO_DHCP};
+	{
+		.mac = {0x80, 0x1F, 0x12, 0x56, 0xC7, 0xC9},
+		.ip = {192, 168, 1, 10},
+		.sn = {255, 255, 255, 0},
+		.gw = {192, 168, 1, 1},
+		.dns = {8, 8, 8, 8},
+		.dhcp = NETINFO_DHCP};
 
 /**********************************************************
  ***************        SETUP         **************
@@ -101,15 +101,15 @@ wiz_NetInfo eth =
 
 void setup()
 {
-	Serial.begin(115200); 
+	Serial.begin(115200);
 	Serial.println("Spustam applikaciu.a1");
 	System_init();
 
-	ESP_LOGW("", "est ESLP log W"); 
-	ESP_LOGI("TEST SP log I", "storage usedd: %lld/%lld", 23,24);
-	//attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
-	//pinMode(ENCODER1, INPUT);
-	//pinMode(ENCODER2, INPUT);
+	ESP_LOGW("", "est ESLP log W");
+	ESP_LOGI("TEST SP log I", "storage usedd: %lld/%lld", 23, 24);
+	// attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
+	// pinMode(ENCODER1, INPUT);
+	// pinMode(ENCODER2, INPUT);
 
 	ESPinfo();
 
@@ -134,7 +134,7 @@ void setup()
 
 	NacitajEEPROM_setting();
 
-	//WiFi_init();    //este si odkomentuj  //WiFi_connect_sequencer(); v 10 sek loop
+	// WiFi_init();    //este si odkomentuj  //WiFi_connect_sequencer(); v 10 sek loop
 	configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
 	timer_1ms.start();
@@ -142,21 +142,21 @@ void setup()
 	timer_100ms.start();
 	timer_1sek.start();
 	timer_10sek.start();
-	esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
-	esp_task_wdt_add(NULL);					  //add current thread to WDT watch
+	esp_task_wdt_init(WDT_TIMEOUT, true); // enable panic so ESP32 restarts
+	esp_task_wdt_add(NULL);				  // add current thread to WDT watch
 
-	//RS485 musis spustit az tu, lebo ak ju das hore a ESP ceka na konnect wifi, a pridu nejake data na RS485, tak FreeRTOS =RESET  asi overflow;
-	//Serial1.begin(9600);
+	// RS485 musis spustit az tu, lebo ak ju das hore a ESP ceka na konnect wifi, a pridu nejake data na RS485, tak FreeRTOS =RESET  asi overflow;
+	// Serial1.begin(9600);
 
-	//swSer.begin(115200);
-	//swSer.println("");
+	// swSer.begin(115200);
+	// swSer.println("");
 }
 
 void loop()
 {
 	esp_task_wdt_reset();
 	ws.cleanupClients();
-	//AsyncElegantOTA.loop();
+	// AsyncElegantOTA.loop();
 	timer_1ms.update();
 	timer_10ms.update();
 	timer_100ms.update();
@@ -173,18 +173,19 @@ void Loop_1ms()
 
 void Loop_10ms()
 {
-	static uint8_t TimeOut_RXdata = 0;	 //musi byt static lebo sem skaces z Loop
-	static uint16_t KolkkoNplnenych = 0; //musi byt static lebo sem skaces z Loop
-	static char budd[250];					 //musi byt static lebo sem skaces z Loop
+	static uint8_t TimeOut_RXdata = 0;	 // musi byt static lebo sem skaces z Loop
+	static uint16_t KolkkoNplnenych = 0; // musi byt static lebo sem skaces z Loop
+	static char budd[250];				 // musi byt static lebo sem skaces z Loop
 
 	uint16_t aktualny;
 	char temp[200];
 
+	aktualny = 0;
 	aktualny = Serial1.available();
 	if (aktualny)
 	{
 
-		//Serial2.readBytes (temp, aktualny);
+		// Serial2.readBytes (temp, aktualny);
 		for (uint16_t i = 0; i < aktualny; i++)
 		{
 			if ((KolkkoNplnenych + aktualny) < sizeof(budd))
@@ -206,18 +207,18 @@ void Loop_10ms()
 		{
 			{
 				sprintf(temp, "[RS485] doslo:%u a to %s\r\n", KolkkoNplnenych, budd);
-				//DebugMsgToWebSocket(temp);
-				//Serial.printf(temp);
+				// DebugMsgToWebSocket(temp);
+				// Serial.printf(temp);
 
 				AIR_PACKET_t *loc_paket;
 				loc_paket = (AIR_PACKET_t *)budd;
 
 				sprintf(temp, "[RS485]  DST adresa je:%u\r\n", loc_paket->DSTadress);
-				//DebugMsgToWebSocket(temp);
-				//Serial.printf(temp);
+				// DebugMsgToWebSocket(temp);
+				// Serial.printf(temp);
 
 				sprintf(temp, "[RS485] Mam adresu %u a idem ulozit data z RS485\r\n", loc_paket->SCRadress);
-				//DebugMsgToWebSocket(temp);
+				// DebugMsgToWebSocket(temp);
 
 				if (loc_paket->SCRadress == 10)
 				{
@@ -244,7 +245,7 @@ void Loop_100ms(void)
 
 void Loop_1sek(void)
 {
-	//ComDebug("[1sek Loop]  mam 1 sek....  ");
+	// ComDebug("[1sek Loop]  mam 1 sek....  ");
 	String sprava = rtc.getTime("\r\n[%H:%M:%S] karta a toto cas z PCF8563:");
 	sprava += PCFrtc.formatDateTime(PCF_TIMEFORMAT_YYYY_MM_DD_H_M_S);
 	// unsigned long start = micros();
@@ -256,12 +257,12 @@ void Loop_1sek(void)
 
 	if (digitalRead(SD_CD_pin) == LOW)
 	{
-		//sprintf(TX_BUF, "[1sek Loop]  karta zasunota\r\n");
+		// sprintf(TX_BUF, "[1sek Loop]  karta zasunota\r\n");
 		sprava += " Zasunuta";
 	}
 	else
 	{
-		//sprintf(TX_BUF, "[1sek Loop]  karta Vysunuta\r\n");
+		// sprintf(TX_BUF, "[1sek Loop]  karta Vysunuta\r\n");
 		sprava += " Vysunuta";
 	}
 
@@ -269,30 +270,30 @@ void Loop_1sek(void)
 	sprintf(tt, "   SCTprud: %uA\r\n", SCT_prud_0);
 	sprava += tt;
 	ComDebugln(sprava);
-	//TCP_debugMsg(sprava);
-	//sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
-	//send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
+	// TCP_debugMsg(sprava);
+	// sprava.toCharArray(TX_BUF, TX_RX_MAX_BUF_SIZE, 0);
+	// send(TCP_10001_socket, (u8 *)TX_BUF, strlen(TX_BUF));
 
 	if (Internet_CasDostupny == false)
 	{
-		//ComDebug("Internet cas nedostupny !!,  ");
+		// ComDebug("Internet cas nedostupny !!,  ");
 	}
 	else
 	{
-		//ComDebug("Internet cas dostupny,  ");
+		// ComDebug("Internet cas dostupny,  ");
 	}
-	//ComDebug("RTC cas cez func rtc.getTime: ");
-	//ComDebugln(rtc.getTime("%A, %B %d %Y %H:%M:%S"));
+	// ComDebug("RTC cas cez func rtc.getTime: ");
+	// ComDebugln(rtc.getTime("%A, %B %d %Y %H:%M:%S"));
 	MyRTC_cas = rtc.getTimeStruct();
-	//Serial.print("[1sek Loop]  free Heap je:");
-	//Serial.println(ESP.getFreeHeap());
+	// Serial.print("[1sek Loop]  free Heap je:");
+	// Serial.println(ESP.getFreeHeap());
 
 	if (myTimer.socketCloseTimeout)
 	{
 		if (--myTimer.socketCloseTimeout == 0)
 		{
 			ComDebugln("[1sek Loop] Zaviram socket len cas uplynul");
-			//disconnect(TCP_10001_socket);
+			// disconnect(TCP_10001_socket);
 			closeSocket(TCP_10001_socket);
 		}
 	}
@@ -314,8 +315,8 @@ void Loop_10sek(void)
 	static u8_t loc_cnt_10sek = 0;
 	String sprava = String("\r\n[10sek Loop]  Mam Loop 10 sek....") + rtc.getDateTime(true);
 	Serial.println(sprava);
-	//TCP_debugMsg(sprava);
-	//DebugMsgToWebSocket("[10sek Loop]  mam 10 sek....\r\n");
+	// TCP_debugMsg(sprava);
+	// DebugMsgToWebSocket("[10sek Loop]  mam 10 sek....\r\n");
 
 	{
 		float testVal = 23.456f;
@@ -328,7 +329,7 @@ void Loop_10sek(void)
 		UlozZaznam(&LogBuffer);
 	}
 
-	//WiFi_connect_sequencer();
+	// WiFi_connect_sequencer();
 }
 
 void OdosliCasDoWS(void)
@@ -361,37 +362,37 @@ void DebugMsgToWebSocket(String textik)
 void FuncServer_On(void)
 {
 	server.on("/",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 //if (!request->authenticate("ahoj", "xxxx"))
-					 //return request->requestAuthentication();
-					 //request->send_P(200, "text/html", index_html, processor);
-					 request->send_P(200, "text/html", Main);
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  // if (!request->authenticate("ahoj", "xxxx"))
+				  // return request->requestAuthentication();
+				  // request->send_P(200, "text/html", index_html, processor);
+				  request->send_P(200, "text/html", Main);
+			  });
 
 	server.on("/nastavip",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 if (!request->authenticate("admin", "adum"))
-						 return request->requestAuthentication();
-					 request->send(200, "text/html", handle_Zadavanie_IP_setting());
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  if (!request->authenticate("admin", "adum"))
+					  return request->requestAuthentication();
+				  request->send(200, "text/html", handle_Zadavanie_IP_setting());
+			  });
 
 	server.on("/Nastaveni",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 handle_Nastaveni(request);
-					 request->send(200, "text/html", "Nastavujem a ukladam do EEPROM");
-					 Serial.println("Idem resetovat ESP");
-					 delay(2000);
-					 esp_restart();
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  handle_Nastaveni(request);
+				  request->send(200, "text/html", "Nastavujem a ukladam do EEPROM");
+				  Serial.println("Idem resetovat ESP");
+				  delay(2000);
+				  esp_restart();
+			  });
 
 	server.on("/status", HTTP_GET, [](AsyncWebServerRequest *request)
-				 {
+			  {
 					 char ttt[500];
 					 //u16_t citac = EEPROM.readUShort (EE_citacZapisuDoEEPORM);
 					 //u16_t citac2 = EEPROM.readUShort (EE_citac2_ZapisuDoEEPORM);
@@ -424,41 +425,40 @@ void FuncServer_On(void)
 									  "%s %s",
 								firmware, WiFi.RSSI(), loc_buf, loc_buf2, loc_buf1);
 
-					 request->send(200, "text/html", ttt);
-				 });
+					 request->send(200, "text/html", ttt); });
 
 	server.on("/reset",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 if (!request->authenticate("admin", "radecek78"))
-						 return request->requestAuthentication();
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  if (!request->authenticate("admin", "radecek78"))
+					  return request->requestAuthentication();
 
-					 request->send(200, "text/html", "resetujem!!!");
-					 delay(1000);
-					 esp_restart();
-				 });
+				  request->send(200, "text/html", "resetujem!!!");
+				  delay(1000);
+				  esp_restart();
+			  });
 
 	server.on("/vytapeni",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 request->send_P(200, "text/html", vytapeni);
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  request->send_P(200, "text/html", vytapeni);
+			  });
 
 	server.on("/zaluzie_Main",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 request->send_P(200, "text/html", zaluzie_Main);
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  request->send_P(200, "text/html", zaluzie_Main);
+			  });
 	server.on("/debug",
-				 HTTP_GET,
-				 [](AsyncWebServerRequest *request)
-				 {
-					 LogEnebleWebPage = true;
-					 request->send_P(200, "text/html", DebugLog_html);
-				 });
+			  HTTP_GET,
+			  [](AsyncWebServerRequest *request)
+			  {
+				  LogEnebleWebPage = true;
+				  request->send_P(200, "text/html", DebugLog_html);
+			  });
 }
 
 //***********************************************  Hepl function ********************************************/
@@ -472,13 +472,13 @@ void ESPinfo(void)
 	Serial.println(WiFi.macAddress());
 	Serial.println("\r\nHardware info");
 	Serial.printf("%d cores Wifi %s%s\n",
-					  chip_info.cores,
-					  (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
-					  (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
+				  chip_info.cores,
+				  (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
+				  (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
 	Serial.printf("\r\nSilicon revision: %d\r\n ", chip_info.revision);
 	Serial.printf("%dMB %s flash\r\n",
-					  spi_flash_get_chip_size() / (1024 * 1024),
-					  (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embeded" : "external");
+				  spi_flash_get_chip_size() / (1024 * 1024),
+				  (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embeded" : "external");
 
 	Serial.printf("\r\nTotal heap: %d\r\n", ESP.getHeapSize());
 	Serial.printf("Free heap: %d\r\n", ESP.getFreeHeap());
@@ -517,25 +517,25 @@ void TCP_handler(uint8_t s, uint16_t port)
 	uint16_t size = 0, sentsize = 0;
 	switch (getSn_SR(s))
 	{
-	case SOCK_ESTABLISHED:			  /* if connection is established */
-		if (getSn_IR(s) & Sn_IR_CON) //toto sa vykona len raz ak zaloziz spojenie
+	case SOCK_ESTABLISHED:			 /* if connection is established */
+		if (getSn_IR(s) & Sn_IR_CON) // toto sa vykona len raz ak zaloziz spojenie
 		{
 			setSn_IR(s, Sn_IR_CON);
 			ComDebugln("spojenie zalozene");
 
-			//TODO tu si nastva myTimer.socketCloseTimeout = 5;
+			// TODO tu si nastva myTimer.socketCloseTimeout = 5;
 			myTimer.socketCloseTimeout = 0;
 			if (LogBuffer.PocetZaznamov)
 			{
 				ComDebugln(String("Pozor v buffer ma") + LogBuffer.PocetZaznamov +
-							  String("zaznamov, musim ich poslat server, ale az pride JSON CAS"));
+						   String("zaznamov, musim ich poslat server, ale az pride JSON CAS"));
 			}
 		}
 		if ((size = getSn_RX_RSR(s)) > 0) // Don't need to check SOCKERR_BUSY because it doesn't not occur.
 		{
 			if (size > TX_RX_MAX_BUF_SIZE)
 				size = TX_RX_MAX_BUF_SIZE;
-			SDSPI.setFrequency(20000000); //TODO tu mas zmenu frekvencie
+			SDSPI.setFrequency(20000000); // TODO tu mas zmenu frekvencie
 			ret = recv(s, (u8 *)ethBuff, size);
 
 			if (ret <= 0)
@@ -550,11 +550,11 @@ void TCP_handler(uint8_t s, uint16_t port)
 
 			if (strncmp((const char *)ethBuff, "GET", 3) == 0) // && timers.GET_request_timeout == 0 )
 			{
-				//SDSPI.setFrequency(35000000);
+				// SDSPI.setFrequency(35000000);
 
 				sprintf(TX_BUF, "\r\n*****DOSLO GET!!!!");
 				unsigned long start = micros();
-				//send(s, (u8 *)ethBuff, strlen((const char *)ethBuff));
+				// send(s, (u8 *)ethBuff, strlen((const char *)ethBuff));
 				unsigned long end = micros();
 				unsigned long delta = end - start;
 				Serial.print("DELTA: ");
@@ -572,8 +572,8 @@ void TCP_handler(uint8_t s, uint16_t port)
 				flg.PeriodickyOdosielajZaznamyzBuffera = false;
 			}
 
-			//sprintf(TX_BUF, "\r\n*****Test ci ospovida Wiz5100s!");
-			//send(s, (u8 *)ethBuff, strlen(ethBuff));
+			// sprintf(TX_BUF, "\r\n*****Test ci ospovida Wiz5100s!");
+			// send(s, (u8 *)ethBuff, strlen(ethBuff));
 		}
 		break;
 
@@ -592,7 +592,7 @@ void TCP_handler(uint8_t s, uint16_t port)
 	case SOCK_INIT: // toto sa vykona od sa close socket a reinicializu, vykona sa to len raz a potom uz len pocuva
 		listen(s);
 		flg.PeriodickyOdosielajZaznamyzBuffera = false;
-		//ComDebugln("[SOCK_INIT] sequencer");
+		// ComDebugln("[SOCK_INIT] sequencer");
 		break;
 
 	default:
