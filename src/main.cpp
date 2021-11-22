@@ -126,10 +126,10 @@ class MyUSBSallnbacks : public USBCallbacks
 	}
 };
 
-#define SD_MISO 37
-#define SD_MOSI 39
-#define SD_SCK 38
-#define SD_CS 40
+// #define SD_MISO 37
+// #define SD_MOSI 39
+// #define SD_SCK 38
+// #define SD_CS 40
 void setup()
 {
 	Serial.begin(115200);
