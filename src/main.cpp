@@ -27,6 +27,8 @@
 #include "Middleware\Ethernet\WizChip_my_API.h"
 #include "esp_log.h"
 
+#include "sdusb.h"
+
 #define ENCODER1 2
 #define ENCODER2 3
 volatile long int encoder_pos = 0;
@@ -83,6 +85,8 @@ bool LogEnebleWebPage = false;
 FLAGS_t flg;
 LOGBUFF_t LogBuffer;
 
+SDCard2USB dev;
+
 VSTUP_t DIN[pocetDIN_celkovo];
 char TX_BUF[TX_RX_MAX_BUF_SIZE];
 //------------------------------------------------------------------------------------------------------------------
@@ -99,6 +103,10 @@ wiz_NetInfo eth =
  ***************        SETUP         **************
  **********************************************************/
 
+#define SD_MISO  37
+#define SD_MOSI  39
+#define SD_SCK   38
+#define SD_CS    40
 void setup()
 {
 	Serial.begin(115200);
@@ -110,6 +118,18 @@ void setup()
 	// attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
 	// pinMode(ENCODER1, INPUT);
 	// pinMode(ENCODER2, INPUT);
+
+	if (dev.initSD(SD_SCK, SD_MISO, SD_MOSI, SD_CS))
+	{
+		if (dev.begin())
+		{
+			Serial.println("MSC lun 1 begin");
+		}
+		else
+			log_e("LUN 1 failed");
+	}
+	else
+		Serial.println("Failed to init SD");
 
 	ESPinfo();
 
