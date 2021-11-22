@@ -27,7 +27,10 @@
 #include "Middleware\Ethernet\WizChip_my_API.h"
 #include "esp_log.h"
 
-#include "sdusb.h"
+//#include "sdusb.h"
+#include "cdcusb.h"
+
+CDCusb USBSerial;
 
 #define ENCODER1 2
 #define ENCODER2 3
@@ -85,7 +88,7 @@ bool LogEnebleWebPage = false;
 FLAGS_t flg;
 LOGBUFF_t LogBuffer;
 
-SDCard2USB dev;
+// SDCard2USB dev;
 
 VSTUP_t DIN[pocetDIN_celkovo];
 char TX_BUF[TX_RX_MAX_BUF_SIZE];
@@ -103,10 +106,30 @@ wiz_NetInfo eth =
  ***************        SETUP         **************
  **********************************************************/
 
-#define SD_MISO  37
-#define SD_MOSI  39
-#define SD_SCK   38
-#define SD_CS    40
+class MyUSBSallnbacks : public USBCallbacks
+{
+	void onMount()
+	{
+		Serial.println("device mounted");
+	}
+	void onUnmount()
+	{
+		Serial.println("device unmounted");
+	}
+	void onSuspend()
+	{
+		Serial.println("device suspended");
+	}
+	void onResume(bool resume)
+	{
+		Serial.println("device resumed");
+	}
+};
+
+#define SD_MISO 37
+#define SD_MOSI 39
+#define SD_SCK 38
+#define SD_CS 40
 void setup()
 {
 	Serial.begin(115200);
@@ -119,17 +142,27 @@ void setup()
 	// pinMode(ENCODER1, INPUT);
 	// pinMode(ENCODER2, INPUT);
 
-	if (dev.initSD(SD_SCK, SD_MISO, SD_MOSI, SD_CS))
-	{
-		if (dev.begin())
-		{
-			Serial.println("MSC lun 1 begin");
-		}
-		else
-			log_e("LUN 1 failed");
-	}
-	else
-		Serial.println("Failed to init SD");
+	USBSerial.manufacturer("espressif");
+	USBSerial.serial("1234-567890");
+	USBSerial.product("Test device");
+	USBSerial.revision(100);
+	USBSerial.deviceID(0xdead, 0xbeef);
+	USBSerial.registerDeviceCallbacks(new MyUSBSallnbacks());
+
+	if (!USBSerial.begin())
+		Serial.println("Failed to start CDC USB device");
+
+	// if (dev.initSD(SD_SCK, SD_MISO, SD_MOSI, SD_CS))
+	// {
+	// 	if (dev.begin())
+	// 	{
+	// 		Serial.println("MSC lun 1 begin");
+	// 	}
+	// 	else
+	// 		log_e("LUN 1 failed");
+	// }
+	// else
+	// 	Serial.println("Failed to init SD");
 
 	ESPinfo();
 
