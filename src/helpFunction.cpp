@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <AsyncElegantOTA.h> //https://randomnerdtutorials.com/esp32-ota-over-the-air-arduino/#1-basic-elegantota
 #include <elegantWebpage.h>
-#include <Hash.h>
 
 #include <Arduino_JSON.h>
 #include <TimeLib.h>
