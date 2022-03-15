@@ -86,8 +86,8 @@ bool LogEnebleWebPage = false;
 FLAGS_t flg;
 LOGBUFF_t LogBuffer;
 
-#include "sdusb.h"
-SDCard2USB dev;
+//#include "sdusb.h"
+//SDCard2USB dev;
 
 VSTUP_t DIN[pocetDIN_celkovo];
 char TX_BUF[TX_RX_MAX_BUF_SIZE];
@@ -105,25 +105,6 @@ wiz_NetInfo eth =
  ***************        SETUP         **************
  **********************************************************/
 
-class MyUSBSallnbacks : public USBCallbacks
-{
-	void onMount()
-	{
-		Serial.println("device mounted");
-	}
-	void onUnmount()
-	{
-		Serial.println("device unmounted");
-	}
-	void onSuspend()
-	{
-		Serial.println("device suspended");
-	}
-	void onResume(bool resume)
-	{
-		Serial.println("device resumed");
-	}
-};
 
  #define SD_MISO 37
  #define SD_MOSI 39
@@ -141,17 +122,17 @@ void setup()
 	// pinMode(ENCODER1, INPUT);
 	// pinMode(ENCODER2, INPUT);
 
-	if (dev.initSD(SD_SCK, SD_MISO, SD_MOSI, SD_CS))
-	{
-		if (dev.begin())
-		{
-			Serial.println("MSC lun 1 begin");
-		}
-		else
-			log_e("LUN 1 failed");
-	}
-	else
-		Serial.println("Failed to init SD");
+	// if (dev.initSD(SD_SCK, SD_MISO, SD_MOSI, SD_CS))
+	// {
+	// 	if (dev.begin())
+	// 	{
+	// 		Serial.println("MSC lun 1 begin");
+	// 	}
+	// 	else
+	// 		log_e("LUN 1 failed");
+	// }
+	// else
+	// 	Serial.println("Failed to init SD");
 
 	ESPinfo();
 
