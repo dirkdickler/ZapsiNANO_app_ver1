@@ -86,8 +86,8 @@ bool LogEnebleWebPage = false;
 FLAGS_t flg;
 LOGBUFF_t LogBuffer;
 
-#include "sdusb.h"
-SDCard2USB dev;
+//#include "sdusb.h"
+//SDCard2USB dev;
 
 VSTUP_t DIN[pocetDIN_celkovo];
 char TX_BUF[TX_RX_MAX_BUF_SIZE];
@@ -105,10 +105,6 @@ wiz_NetInfo eth =
  ***************        SETUP         **************
  **********************************************************/
 
-#define SD_MISO 37
-#define SD_MOSI 39
-#define SD_SCK 38
-#define SD_CS 40
 void setup()
 {
 	Serial.begin(115200);
@@ -121,17 +117,17 @@ void setup()
 	// pinMode(ENCODER1, INPUT);
 	// pinMode(ENCODER2, INPUT);
 
-	if (dev.initSD(SD_SCK, SD_MISO, SD_MOSI, SD_CS))
-	{
-		if (dev.begin())
-		{
-			Serial.println("MSC lun 1 begin");
-		}
-		else
-			log_e("LUN 1 failed");
-	}
-	else
-		Serial.println("Failed to init SD");
+	// if (dev.initSD(SD_sck, SD_miso, SD_mosi, SD_CS_pin))
+	// {
+	// 	if (dev.begin())
+	// 	{
+	// 		Serial.println("MSC lun 1 begin");
+	// 	}
+	// 	else
+	// 		log_e("LUN 1 failed");
+	// }
+	// else
+	// 	Serial.println("Failed to init SD");
 
 	ESPinfo();
 
@@ -201,7 +197,7 @@ void Loop_10ms()
 
 	uint16_t aktualny;
 	char temp[200];
-
+ 
 	aktualny = 0;
 	aktualny = Serial1.available();
 	if (aktualny)
@@ -268,7 +264,7 @@ void Loop_100ms(void)
 void Loop_1sek(void)
 {
 	// ComDebug("[1sek Loop]  mam 1 sek....  ");
-	String sprava = rtc.getTime("\r\n[%H:%M:%S] karta a toto cas z PCF8563:");
+	String sprava;// = rtc.getTime("\r\n[%H:%M:%S] karta a toto cas z PCF8563:");
 	sprava += PCFrtc.formatDateTime(PCF_TIMEFORMAT_YYYY_MM_DD_H_M_S);
 	// unsigned long start = micros();
 	// sprava += PCFrtc.formatDateTime(PCF_TIMEFORMAT_YYYY_MM_DD_H_M_S);
@@ -306,7 +302,7 @@ void Loop_1sek(void)
 	}
 	// ComDebug("RTC cas cez func rtc.getTime: ");
 	// ComDebugln(rtc.getTime("%A, %B %d %Y %H:%M:%S"));
-	MyRTC_cas = rtc.getTimeStruct();
+	//MyRTC_cas = rtc.getTimeStruct();
 	// Serial.print("[1sek Loop]  free Heap je:");
 	// Serial.println(ESP.getFreeHeap());
 
