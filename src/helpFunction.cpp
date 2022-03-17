@@ -360,7 +360,7 @@ void System_init(void)
 	pinMode(ADC_gain_pin, OUTPUT_OPEN_DRAIN);
 	pinMode(SD_CS_pin, OUTPUT);
 	pinMode(WIZ_CS_pin, OUTPUT);
-	pinMode(WIZ_RES_pin, OUTPUT);
+//	pinMode(WIZ_RES_pin, OUTPUT);  //!! POZOR toto ak mas povolene, tak sato furt resetuje !!!
 
 	WizChip_RST_HI();
 	WizChip_CS_HI();
