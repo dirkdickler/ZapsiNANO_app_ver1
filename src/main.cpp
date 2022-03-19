@@ -86,8 +86,8 @@ bool LogEnebleWebPage = false;
 FLAGS_t flg;
 LOGBUFF_t LogBuffer;
 
-//#include "sdusb.h"
-//SDCard2USB dev;
+#include "sdusb.h"
+SDCard2USB dev;
 
 VSTUP_t DIN[pocetDIN_celkovo];
 char TX_BUF[TX_RX_MAX_BUF_SIZE];
@@ -117,17 +117,18 @@ void setup()
 	// pinMode(ENCODER1, INPUT);
 	// pinMode(ENCODER2, INPUT);
 
-	// if (dev.initSD(SD_sck, SD_miso, SD_mosi, SD_CS_pin))
-	// {
-	// 	if (dev.begin())
-	// 	{
-	// 		Serial.println("MSC lun 1 begin");
-	// 	}
-	// 	else
-	// 		log_e("LUN 1 failed");
-	// }
-	// else
-	// 	Serial.println("Failed to init SD");
+   dev.setCapacity(4,512);
+	if (dev.initSD(SD_sck, SD_miso, SD_mosi, SD_CS_pin))
+	{
+		if (dev.begin())
+		{
+			Serial.println("MSC lun 1 begin");
+		}
+		else
+			log_e("LUN 1 failed");
+	}
+	else
+		Serial.println("Failed to init SD");
 
 	ESPinfo();
 
