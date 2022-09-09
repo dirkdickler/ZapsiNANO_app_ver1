@@ -27,10 +27,6 @@
 #include "Middleware\Ethernet\WizChip_my_API.h"
 #include "esp_log.h"
 
-//#include "sdusb.h"
-#include "cdcusb.h"
-
-CDCusb USBSerial;
 
 #define ENCODER1 2
 #define ENCODER2 3
@@ -106,25 +102,7 @@ wiz_NetInfo eth =
  ***************        SETUP         **************
  **********************************************************/
 
-class MyUSBSallnbacks : public USBCallbacks
-{
-	void onMount()
-	{
-		Serial.println("device mounted");
-	}
-	void onUnmount()
-	{
-		Serial.println("device unmounted");
-	}
-	void onSuspend()
-	{
-		Serial.println("device suspended");
-	}
-	void onResume(bool resume)
-	{
-		Serial.println("device resumed");
-	}
-};
+
 
 // #define SD_MISO 37
 // #define SD_MOSI 39
@@ -136,22 +114,13 @@ void setup()
 	Serial.println("Spustam applikaciu.a1");
 	System_init();
 
-	ESP_LOGW("", "est ESLP log W");
-	ESP_LOGI("TEST SP log I", "storage usedd: %lld/%lld", 23, 24);
+	//ESP_LOGW("", "est ESLP log W");
+	//ESP_LOGI("TEST SP log I", "storage usedd: %lld/%lld", 23, 24);
 	// attachInterrupt(digitalPinToInterrupt(ENCODER1), encoder, RISING);
 	// pinMode(ENCODER1, INPUT);
 	// pinMode(ENCODER2, INPUT);
 
-	USBSerial.manufacturer("espressif");
-	USBSerial.serial("1234-567890");
-	USBSerial.product("Test device");
-	USBSerial.revision(100);
-	USBSerial.deviceID(0xdead, 0xbeef);
-	USBSerial.registerDeviceCallbacks(new MyUSBSallnbacks());
-
-	if (!USBSerial.begin())
-		Serial.println("Failed to start CDC USB device");
-
+	
 	// if (dev.initSD(SD_SCK, SD_MISO, SD_MOSI, SD_CS))
 	// {
 	// 	if (dev.begin())
