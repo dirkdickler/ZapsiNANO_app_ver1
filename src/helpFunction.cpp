@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <AsyncElegantOTA.h> //https://randomnerdtutorials.com/esp32-ota-over-the-air-arduino/#1-basic-elegantota
 #include <elegantWebpage.h>
-#include <Hash.h>
 
 #include <Arduino_JSON.h>
 #include <TimeLib.h>
@@ -15,7 +14,7 @@
 #include "index.html"
 #include "HelpFunction.h"
 
-//toto spituje retezec napr cas  21:56, ti rozdeli podla delimetru ":"
+// toto spituje retezec napr cas  21:56, ti rozdeli podla delimetru ":"
 char **split(char **argv, int *argc, char *string, const char delimiter, int allowempty)
 {
 	*argc = 0;
@@ -197,7 +196,7 @@ static bool Input_digital_filtering(VSTUP_t *input_struct, uint16_t filterCas)
 {
 	if (digitalRead(input_struct->pin) == LOW)
 	{
-		//Serial.println("[Input filter] hlasi nula..");
+		// Serial.println("[Input filter] hlasi nula..");
 		if (input_struct->filter < filterCas)
 		{
 			input_struct->filter++;
@@ -209,7 +208,7 @@ static bool Input_digital_filtering(VSTUP_t *input_struct, uint16_t filterCas)
 	}
 	else
 	{
-		//Serial.println("[Input filter] hlasi jenda..");
+		// Serial.println("[Input filter] hlasi jenda..");
 		input_struct->input = 0;
 		input_struct->filter = 0;
 	}
@@ -226,7 +225,7 @@ static bool Input_digital_filtering(VSTUP_t *input_struct, uint16_t filterCas)
 
 void ScanInputs(void)
 {
-	//Serial.println("[ScanInputs] begin..");
+	// Serial.println("[ScanInputs] begin..");
 	bool bolaZmenaVstupu = false;
 
 	DIN[input_SDkarta].zmena = Input_digital_filtering(&DIN[input_SDkarta], filterTime_SD_CD);
@@ -329,7 +328,7 @@ void ScanInputs(void)
 			{
 				DIN[i].counter++;
 				LogBuffer.zaznam.data[0] = 1;
-			} //tu si incrementuju citac impulzu
+			} // tu si incrementuju citac impulzu
 			else
 			{
 				LogBuffer.zaznam.data[0] = 0;
@@ -361,7 +360,7 @@ void System_init(void)
 	pinMode(ADC_gain_pin, OUTPUT_OPEN_DRAIN);
 	pinMode(SD_CS_pin, OUTPUT);
 	pinMode(WIZ_CS_pin, OUTPUT);
-	pinMode(WIZ_RES_pin, OUTPUT);
+	//	pinMode(WIZ_RES_pin, OUTPUT);  //!! POZOR toto ak mas povolene, tak sato furt resetuje !!!
 
 	WizChip_RST_HI();
 	WizChip_CS_HI();
@@ -381,14 +380,14 @@ void System_init(void)
 	RTC_Date Pccc;
 	Wire.begin(18, 17);
 	PCFrtc.begin();
-	//PCFrtc.setDateTime(2019, 4, 1, 12, 33, 59);
+	// PCFrtc.setDateTime(2019, 4, 1, 12, 33, 59);
 	Pccc = PCFrtc.getDateTime();
 	rtc.setTime(Pccc.second, Pccc.minute, Pccc.hour, Pccc.day, Pccc.month, Pccc.year); // 17th Jan 2021 15:24:30
 
 	NaplnWizChipStrukturu();
 
 	SDSPI.setFrequency(10000000); // nezabudni ze pri SD.begin(SD_CS_pin, SDSPI,10000000)) budes menit fre na hodnotu v zavorkach
-	//SDSPI.setClockDivider(SPI_CLOCK_DIV2);
+	// SDSPI.setClockDivider(SPI_CLOCK_DIV2);
 	SDSPI.begin(SD_sck, SD_miso, SD_mosi, -1);
 
 	// if (!SD.begin(SD_CS_pin, SDSPI))
@@ -429,7 +428,7 @@ void System_init(void)
 	// 	Serial.printf("SD Card Size: %lluMB\n", cardSize);
 	// 	Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
 	// 	Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
-
+	
 	// 	File profile = SD.open("/aaa.txt", FILE_READ);
 	// 	Serial.printf("Velkost subora je :%lu\r\n", profile.size());
 	// 	if (!profile)
@@ -472,7 +471,7 @@ int8_t NacitajEEPROM_setting(void)
 
 	EEPROM.readBytes(EE_NazovSiete, NazovSiete, 16);
 
-	if (NazovSiete[0] != 0xff) //ak mas novy modul tak EEPROM vrati prazdne hodnoty, preto ich neprepisem z EEPROM, ale necham default
+	if (NazovSiete[0] != 0xff) // ak mas novy modul tak EEPROM vrati prazdne hodnoty, preto ich neprepisem z EEPROM, ale necham default
 	{
 		String apipch = EEPROM.readString(EE_IPadresa); // "192.168.1.11";
 		local_IP = str2IP(apipch);
@@ -511,7 +510,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 		{
 			OdosliCasDoWS();
 
-			//notifyClients();
+			// notifyClients();
 		}
 		else if (strcmp((char *)data, "VratNamerane_TaH") == 0)
 		{
@@ -522,11 +521,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 
 		else if (strcmp((char *)data, "ZaluzieAllOpen") == 0)
 		{
-			//Send:02 43 64 00 02 00 0e 80 0e 00 00 00 b8
+			// Send:02 43 64 00 02 00 0e 80 0e 00 00 00 b8
 			u8 loc_buf[14] = {0x2, 0x43, 0x64, 0x0, 0x2, 0x0, 0x0e, 0x80, 0x0e, 0x0, 0x0, 0x0, 0xb8};
 			Serial.println("stranky poslali: ZaluzieVsetkyOtvor");
 
-			//Serial1.print("test RS485..Zaluzie All open.. ");
+			// Serial1.print("test RS485..Zaluzie All open.. ");
 			for (u8 i = 0; i < 13; i++)
 			{
 				Serial1.write(loc_buf[i]);
@@ -536,11 +535,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 		}
 		else if (strcmp((char *)data, "ZaluzieAllStop") == 0)
 		{
-			//Send:02 43 64 00 02 00 0c 80 0c 00 00 00 bc
+			// Send:02 43 64 00 02 00 0c 80 0c 00 00 00 bc
 			u8 loc_buf[14] = {0x2, 0x43, 0x64, 0x0, 0x2, 0x0, 0x0c, 0x80, 0x0c, 0x0, 0x0, 0x0, 0xbc};
 			Serial.println("stranky poslali: ZaluzieAllStop ");
 
-			//Serial1.println("test RS485..Zaluzie All Stop.. ");
+			// Serial1.println("test RS485..Zaluzie All Stop.. ");
 			for (u8 i = 0; i < 13; i++)
 			{
 				Serial1.write(loc_buf[i]);
@@ -552,11 +551,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 
 		else if (strcmp((char *)data, "ZaluzieAllClose") == 0)
 		{
-			//Send:02 43 64 00 02 00 0d 80 0d 00 00 00 ba
+			// Send:02 43 64 00 02 00 0d 80 0d 00 00 00 ba
 			u8 loc_buf[14] = {0x02, 0x43, 0x64, 0x0, 0x2, 0x0, 0x0d, 0x80, 0x0d, 0x0, 0x0, 0x0, 0xba};
 			Serial.println("stranky poslali: ZaluzieVsetky zatvor");
 
-			//Serial1.println("test RS485..Zaluzie All close.. ");
+			// Serial1.println("test RS485..Zaluzie All close.. ");
 			for (u8 i = 0; i < 13; i++)
 			{
 				Serial1.write(loc_buf[i]);
@@ -568,11 +567,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 }
 
 void onEvent(AsyncWebSocket *server,
-			 AsyncWebSocketClient *client,
-			 AwsEventType type,
-			 void *arg,
-			 uint8_t *data,
-			 size_t len)
+				 AsyncWebSocketClient *client,
+				 AwsEventType type,
+				 void *arg,
+				 uint8_t *data,
+				 size_t len)
 {
 	switch (type)
 	{
@@ -614,8 +613,8 @@ void WiFi_init(void)
 	// Print ESP Local IP Address
 	Serial.println(WiFi.localIP());
 
-	ws.onEvent(onEvent);	//initWebSocket();
-	server.addHandler(&ws); //initWebSocket();
+	ws.onEvent(onEvent);		// initWebSocket();
+	server.addHandler(&ws); // initWebSocket();
 
 	FuncServer_On();
 
@@ -624,14 +623,14 @@ void WiFi_init(void)
 	server.begin();
 }
 
-void WiFi_connect_sequencer(void) //vplas kazdych 10 sek loop
+void WiFi_connect_sequencer(void) // vplas kazdych 10 sek loop
 {
 	static u8_t loc_cnt_10sek = 0;
 
 	Serial.print("Wifi status:");
 	Serial.println(WiFi.status());
 
-	//https://randomnerdtutorials.com/esp32-useful-wi-fi-functions-arduino/
+	// https://randomnerdtutorials.com/esp32-useful-wi-fi-functions-arduino/
 	if (WiFi.status() != WL_CONNECTED)
 	{
 		loc_cnt_10sek++;
@@ -642,7 +641,7 @@ void WiFi_connect_sequencer(void) //vplas kazdych 10 sek loop
 		loc_cnt_10sek = 0;
 		Serial.println("[10sek] Parada WIFI je Connect davam loc_cnt na Nula");
 
-		//TODO ak je Wifi connect tak pocitam ze RTC cas bude OK este dorob
+		// TODO ak je Wifi connect tak pocitam ze RTC cas bude OK este dorob
 		Internet_CasDostupny = true;
 		RTC_cas_OK = true;
 	}
@@ -735,7 +734,7 @@ String handle_LenZobraz_IP_setting(void)
 
 	sprintf(ttt, LenzobrazIP_html, ippadresa, maskaIP, brana, NazovSiete);
 	return ttt;
-	//server.send (200, "text/html", ttt);
+	// server.send (200, "text/html", ttt);
 }
 
 String handle_Zadavanie_IP_setting(void)
@@ -771,8 +770,8 @@ String handle_Zadavanie_IP_setting(void)
 	Serial.print(brana);
 
 	sprintf(ttt, zadavaci_html, ippadresa, maskaIP, brana, NazovSiete, HesloSiete);
-	//Serial.print ("\r\nToto je bufer pre stranky:\r\n");
-	//Serial.print(ttt);
+	// Serial.print ("\r\nToto je bufer pre stranky:\r\n");
+	// Serial.print(ttt);
 
 	return ttt;
 }
@@ -833,12 +832,12 @@ void handle_Nastaveni(AsyncWebServerRequest *request)
 
 void OdosliStrankeVytapeniData(void)
 {
-	//ObjTopeni["tep1"] = room[0].T_vzduch;
-	//ObjTopeni["hum1"] = room[0].RH_vlhkkost;
+	// ObjTopeni["tep1"] = room[0].T_vzduch;
+	// ObjTopeni["hum1"] = room[0].RH_vlhkkost;
 
 	String jsonString = JSON.stringify(ObjTopeni);
 	Serial.print("[ event -VratNamerane_TaH] Odosielam strankam ObjTopeni:");
-	//Serial.println(jsonString);
+	// Serial.println(jsonString);
 	ws.textAll(jsonString);
 }
 
@@ -885,8 +884,8 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 			Serial.println("Parichozi JSON SOCKETU mau nejaku deinicu JSONu");
 			if (myObject.hasOwnProperty("MACadresa"))
 			{
-				//ComDebug("myObject ma MAC adresu a to = ");
-				//ComDebugln((const char *)myObject["MACadresa"]);
+				// ComDebug("myObject ma MAC adresu a to = ");
+				// ComDebugln((const char *)myObject["MACadresa"]);
 				String dddd;
 				dddd = myObject["MACadresa"];
 				char *argv[8];
@@ -895,23 +894,23 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 				dddd.toCharArray(str, sizeof(str), 0);
 				split(argv, &argc, str, ':', 0);
 
-				//ComDebugln("-------Toto  su cleny MAC adrese--------\n");
+				// ComDebugln("-------Toto  su cleny MAC adrese--------\n");
 				char pole[50];
 				for (int i = 0; i < argc; i++)
 				{
 					sprintf(pole, "argv[%d] = %s", i, argv[i]);
-					//ComDebugln(pole);
+					// ComDebugln(pole);
 					sprintf(pole, "prevedene na int [%d] -", strtol(argv[i], NULL, 16));
-					//ComDebugln(pole);
+					// ComDebugln(pole);
 				}
-				//ComDebugln("-------------------------\n");
+				// ComDebugln("-------------------------\n");
 
 				if (eth.mac[0] == strtol(argv[0], NULL, 16) &&
-					eth.mac[1] == strtol(argv[1], NULL, 16) &&
-					eth.mac[2] == strtol(argv[2], NULL, 16) &&
-					eth.mac[3] == strtol(argv[3], NULL, 16) &&
-					eth.mac[4] == strtol(argv[4], NULL, 16) &&
-					eth.mac[5] == strtol(argv[5], NULL, 16))
+					 eth.mac[1] == strtol(argv[1], NULL, 16) &&
+					 eth.mac[2] == strtol(argv[2], NULL, 16) &&
+					 eth.mac[3] == strtol(argv[3], NULL, 16) &&
+					 eth.mac[4] == strtol(argv[4], NULL, 16) &&
+					 eth.mac[5] == strtol(argv[5], NULL, 16))
 				{
 					ComDebugln("Super JSON sa rovna mojej MAC adrese");
 					myTimer.socketCloseTimeout = 0; // tu je akoze dosiel JSON string kde je MAC
@@ -923,7 +922,7 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 				//{"Cas":"2021:9:22:13:15:16 "}
 				// Ked v JSON dosje "Cas", takto beru ze na druhej strane je opravneny server a mazy flag vynuteneho Close soketu
 				myTimer.socketCloseTimeout = 0;
-				//flg.PeriodickyOdosielajZaznamyzBuffera = true;
+				// flg.PeriodickyOdosielajZaznamyzBuffera = true;
 
 				ComDebug("myObject ma CAS JSON");
 				ComDebugln((const char *)myObject["Cas"]);
@@ -954,13 +953,13 @@ bool KontrolujBufferZdaObsaujeJSONdata(char JSONbuffer[])
 				mt = atoi(argv[1]);
 				yr = atoi(argv[0]);
 				if ((sc < 60 && sc > -1) &&
-					(mn > -1 && mn < 60) &&
-					(hr > -1 && hr < 24) &&
-					(dy > 0 && dy < 32) &&
-					(mt > 0 && mt < 13) &&
-					(yr > 2000 && yr < 2500))
+					 (mn > -1 && mn < 60) &&
+					 (hr > -1 && hr < 24) &&
+					 (dy > 0 && dy < 32) &&
+					 (mt > 0 && mt < 13) &&
+					 (yr > 2000 && yr < 2500))
 				{
-					//TODO tu mas uz rozparsrovany RTC, tak si ho uloz kam potrebujes do ESP casu, or do I2C RTC modulu
+					// TODO tu mas uz rozparsrovany RTC, tak si ho uloz kam potrebujes do ESP casu, or do I2C RTC modulu
 					RTC_Date Pccc;
 					PCFrtc.setDateTime(yr, mt, dy, hr, mn, sc);
 					Pccc = PCFrtc.getDateTime();
@@ -1015,11 +1014,11 @@ int32_t Read_32_Value(char *buff)
 	return *ptr;
 }
 
-//TODO tu si otestuj este nacitani 64bit val lebo na STM32 to vytuhovalo inakpouzi cez memcpy dole odkomentovanu
-// void Read_u64_Value(char *buff, char *data)
-// {
-//    memcpy(data, buff, sizeof(uint64_t));
-// }
+// TODO tu si otestuj este nacitani 64bit val lebo na STM32 to vytuhovalo inakpouzi cez memcpy dole odkomentovanu
+//  void Read_u64_Value(char *buff, char *data)
+//  {
+//     memcpy(data, buff, sizeof(uint64_t));
+//  }
 u64 Read_u64_Value(char *buff)
 {
 	uint64_t *ptr = (uint64_t *)buff;
@@ -1079,21 +1078,21 @@ bool OdosliZaznamDosocketu(LOGBUFF_t *logBuffStruc)
 	if (flg.PeriodickyOdosielajZaznamyzBuffera == true)
 	{
 		String sprava = VyberZaznam(logBuffStruc, false);
-		//ComDebugln("Toto idem poslat do Socketu");
-		//ComDebugln(sprava);
+		// ComDebugln("Toto idem poslat do Socketu");
+		// ComDebugln(sprava);
 		sprava.toCharArray(locWorkBuff, sizeof(locWorkBuff), 0);
 		i32 ret = send(TCP_10001_socket, (u8 *)locWorkBuff, strlen(locWorkBuff));
-		//ComDebug(String("Do  TCP soketu sa malo poslat  bytes: ") + strlen(locWorkBuff) + String(" a poslalo sa:") + ret);
+		// ComDebug(String("Do  TCP soketu sa malo poslat  bytes: ") + strlen(locWorkBuff) + String(" a poslalo sa:") + ret);
 		if (strlen(locWorkBuff) == ret)
 		{
-			//ComDebug("Odoslanie dat do TCP socketu bolo OK, tak zaznam z buffer mazem");
-			//ComDebugln(ret);
-			VyberZaznam(logBuffStruc, true); //zmazem zaznam
+			// ComDebug("Odoslanie dat do TCP socketu bolo OK, tak zaznam z buffer mazem");
+			// ComDebugln(ret);
+			VyberZaznam(logBuffStruc, true); // zmazem zaznam
 			return true;
 		}
 		else
 		{
-			//ComDebug("Odoslanie dat do TCP socketu bolo NOK!!  zaznam necham v bufferi");
+			// ComDebug("Odoslanie dat do TCP socketu bolo NOK!!  zaznam necham v bufferi");
 		}
 	}
 	return false;
@@ -1102,7 +1101,7 @@ bool OdosliZaznamDosocketu(LOGBUFF_t *logBuffStruc)
 bool UlozZaznam(LOGBUFF_t *logBuffStruc)
 {
 	if ((((logBuffStruc->zaznam.pocetDat + 5) + logBuffStruc->BufferIndex) >= maxVelkostLogBuffera) ||
-		(logBuffStruc->PocetZaznamov >= maxPocetZaznamov))
+		 (logBuffStruc->PocetZaznamov >= maxPocetZaznamov))
 	{
 		ComDebugln(String("Pozor plny buffer, posuvam zaznami pred je pocet") + logBuffStruc->PocetZaznamov + String("index v bufferi:") + logBuffStruc->BufferIndex);
 		VyberZaznam(logBuffStruc, true);
@@ -1144,7 +1143,7 @@ String VyberZaznam(LOGBUFF_t *logBuffStruc, bool aZrovnaZaznamZmaz)
 	{
 		locBuff[i] = logBuffStruc->Buffer[i];
 	}
-	//printf("Spracuvam zaznam co ma pocet bytes:%u  a to :%s\r\n", PocetBytesZaznamu, locBuff);
+	// printf("Spracuvam zaznam co ma pocet bytes:%u  a to :%s\r\n", PocetBytesZaznamu, locBuff);
 
 	if (aZrovnaZaznamZmaz == true)
 	{
@@ -1158,11 +1157,11 @@ String VyberZaznam(LOGBUFF_t *logBuffStruc, bool aZrovnaZaznamZmaz)
 		}
 		logBuffStruc->BufferIndex -= PocetBytesZaznamu;
 
-		//ComDebugln(String("Vyber zaznam -s MAZANIM!! zosrava zaznamu:") + logBuffStruc->PocetZaznamov);
+		// ComDebugln(String("Vyber zaznam -s MAZANIM!! zosrava zaznamu:") + logBuffStruc->PocetZaznamov);
 	}
 	else
 	{
-		//ComDebugln("Vyber zaznam BEZ zmazania");
+		// ComDebugln("Vyber zaznam BEZ zmazania");
 	}
 	long temp = locBuff[3];
 	temp <<= 8; // stol(epoch);
@@ -1174,12 +1173,12 @@ String VyberZaznam(LOGBUFF_t *logBuffStruc, bool aZrovnaZaznamZmaz)
 
 	String StrCas;
 	StrCas = String("") + year(temp) +
-			 String(":") + month(temp) +
-			 String(":") + day(temp) +
-			 String(":") + hour(temp) +
-			 String(":") + minute(temp) +
-			 String(":") + second(temp) +
-			 String(":") + millisekundy;
+				String(":") + month(temp) +
+				String(":") + day(temp) +
+				String(":") + hour(temp) +
+				String(":") + minute(temp) +
+				String(":") + second(temp) +
+				String(":") + millisekundy;
 	if (++millisekundy == 100)
 	{
 		millisekundy = 0;
