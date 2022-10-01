@@ -346,7 +346,7 @@ void Loop_10sek(void)
 		LogBuffer.zaznam.PosixTime = rtc.getEpoch();
 		LogBuffer.zaznam.zaznamID = IDzaznamu_SCT_prud;
 		float2Bytes(testVal, &LogBuffer.zaznam.data[0]);
-		float2Bytes(testVal2, &LogBuffer.zaznam.data[4]);
+		float2Bytes(testVal2, &LogBuffer.zaznam.data[4]); 
 		LogBuffer.zaznam.pocetDat = 8;
 		UlozZaznam(&LogBuffer);
 	}
